@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'data/hiker_client.dart';
 import 'data/ig_repository.dart';
+import 'data/threads_client.dart';
 import 'services/download_service.dart';
 import 'services/settings_store.dart';
 import 'state/profile_controller.dart';
@@ -28,7 +29,11 @@ class _TandiAppState extends State<TandiApp> {
   late final HikerClient _client = HikerClient(
     readApiKey: () => _settings.apiKey,
   );
-  late final IgRepository _repository = IgRepository(_client);
+  late final ThreadsClient _threadsClient = ThreadsClient();
+  late final IgRepository _repository = IgRepository(
+    _client,
+    threadsClient: _threadsClient,
+  );
   late final DownloadService _downloads = DownloadService(settings: _store);
 
   @override
@@ -40,6 +45,7 @@ class _TandiAppState extends State<TandiApp> {
   @override
   void dispose() {
     _downloads.dispose();
+    _threadsClient.close();
     _client.close();
     super.dispose();
   }
@@ -50,12 +56,8 @@ class _TandiAppState extends State<TandiApp> {
       providers: [
         ChangeNotifierProvider.value(value: _settings),
         ChangeNotifierProvider.value(value: _downloads),
-        ChangeNotifierProvider(
-          create: (_) => ResolveController(_repository),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => ProfileController(_repository),
-        ),
+        ChangeNotifierProvider(create: (_) => ResolveController(_repository)),
+        ChangeNotifierProvider(create: (_) => ProfileController(_repository)),
       ],
       child: MaterialApp(
         title: 'Tandi',

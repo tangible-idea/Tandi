@@ -46,7 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _sectionTitle(context, 'HikerAPI'),
+                _sectionTitle(context, 'HikerAPI (인스타그램)'),
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -135,6 +135,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             color: settings.backend == SettingsBackend.keychain
                                 ? theme.colorScheme.onSurfaceVariant
                                 : theme.colorScheme.error,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'HikerAPI는 인스타그램 미디어 조회에만 사용됩니다. Threads 다운로드는 키 없이 바로 이용하실 수 있습니다.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),

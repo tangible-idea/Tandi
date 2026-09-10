@@ -3,6 +3,7 @@ import '../models/ig_user.dart';
 import 'hiker_client.dart';
 import 'ig_url.dart';
 import 'media_parser.dart';
+import 'threads_client.dart';
 
 /// 링크 하나를 해석한 결과. 스토리처럼 여러 건이 나오는 경우가 있어 항상 목록이다.
 class ResolveResult {
@@ -28,9 +29,11 @@ class MediaPage {
 
 /// 링크 종류에 맞는 HikerAPI 엔드포인트를 골라 호출하고 모델로 돌려준다.
 class IgRepository {
-  IgRepository(this._client);
+  IgRepository(this._client, {ThreadsClient? threadsClient})
+    : _threadsClient = threadsClient ?? ThreadsClient();
 
   final HikerClient _client;
+  final ThreadsClient _threadsClient;
 
   Future<ResolveResult> resolve(IgLink link) async {
     return switch (link.type) {
@@ -40,13 +43,24 @@ class IgRepository {
       IgLinkType.story => _resolveStory(link),
       IgLinkType.userStories => _resolveUserStories(link.username!),
       IgLinkType.highlight => _resolveHighlight(link),
-      IgLinkType.profile => throw HikerException(
-        '프로필 링크입니다. 프로필 탭에서 열어 주세요.',
+      IgLinkType.profile => throw HikerException('프로필 링크입니다. 프로필 탭에서 열어 주세요.'),
+      IgLinkType.threadsPost => _resolveThreadsPost(link),
+      IgLinkType.threadsProfile => throw HikerException(
+        'Threads 프로필 링크입니다. 개별 게시물 주소를 붙여넣어 주세요.',
       ),
       IgLinkType.unknown => throw HikerException(
-        '인스타그램 게시물·릴스·스토리 주소를 붙여넣어 주세요.',
+        '인스타그램 또는 Threads 게시물 주소를 붙여넣어 주세요.',
       ),
     };
+  }
+
+  Future<ResolveResult> _resolveThreadsPost(IgLink link) async {
+    final post = await _threadsClient.fetchPost(link);
+    return ResolveResult(
+      title: '@${post.authorName} · Threads · ${post.kind.label}',
+      posts: [post],
+      user: post.user,
+    );
   }
 
   // ── 게시물 ────────────────────────────────────────────────────────────────
@@ -58,7 +72,9 @@ class IgRepository {
   Future<ResolveResult> _resolveMediaByCode(String code) async {
     Map<String, dynamic>? raw;
     try {
-      raw = _asMap(await _client.get('/v1/media/by/code', query: {'code': code}));
+      raw = _asMap(
+        await _client.get('/v1/media/by/code', query: {'code': code}),
+      );
     } on HikerException catch (error) {
       if (!error.isNotFound) rethrow;
       raw = _asMap(
@@ -81,7 +97,9 @@ class IgRepository {
   /// 서버가 리디렉션을 따라가 주므로 URL 을 그대로 넘긴다.
   Future<ResolveResult> _resolveShareLink(IgLink link) async {
     final url = link.normalizedUrl ?? link.raw;
-    final raw = _asMap(await _client.get('/v1/media/by/url', query: {'url': url}));
+    final raw = _asMap(
+      await _client.get('/v1/media/by/url', query: {'url': url}),
+    );
     final post = MediaParser.parsePost(raw);
     if (post == null || !post.hasDownloadableAssets) {
       throw HikerException('공유 링크에서 게시물을 찾지 못했습니다. 원본 게시물 주소로 다시 시도해 주세요.');
@@ -97,7 +115,9 @@ class IgRepository {
   /// 응답은 `{"pk": ..., "type": "highlight"}` 형태다.
   Future<ResolveResult> _resolveShareToken(IgLink link) async {
     final url = link.normalizedUrl ?? link.raw;
-    final raw = _asMap(await _client.get('/v1/share/by/url', query: {'url': url}));
+    final raw = _asMap(
+      await _client.get('/v1/share/by/url', query: {'url': url}),
+    );
     final pk = raw?['pk']?.toString();
     final type = (raw?['type'] as String?)?.toLowerCase();
 
@@ -109,11 +129,15 @@ class IgRepository {
       return _resolveHighlightById(pk);
     }
     if (type == 'story') {
-      final story = _asMap(await _client.get('/v1/story/by/id', query: {'id': pk}));
+      final story = _asMap(
+        await _client.get('/v1/story/by/id', query: {'id': pk}),
+      );
       return _storiesResult([story], fallbackTitle: '스토리');
     }
     // 그 외 타입은 일반 게시물로 간주한다.
-    final media = _asMap(await _client.get('/v1/media/by/id', query: {'id': pk}));
+    final media = _asMap(
+      await _client.get('/v1/media/by/id', query: {'id': pk}),
+    );
     final post = MediaParser.parsePost(media);
     if (post == null || !post.hasDownloadableAssets) {
       throw HikerException('이 공유 링크에서 내려받을 수 있는 파일을 찾지 못했습니다.');
@@ -129,7 +153,9 @@ class IgRepository {
 
   Future<ResolveResult> _resolveStory(IgLink link) async {
     final url = link.normalizedUrl ?? link.raw;
-    final raw = _asMap(await _client.get('/v1/story/by/url', query: {'url': url}));
+    final raw = _asMap(
+      await _client.get('/v1/story/by/url', query: {'url': url}),
+    );
     return _storiesResult([raw], fallbackTitle: '스토리');
   }
 
@@ -160,7 +186,8 @@ class IgRepository {
     final raw = await _client.get(
       '/v1/highlight/by/url',
       query: {
-        'url': 'https://www.instagram.com/stories/highlights/'
+        'url':
+            'https://www.instagram.com/stories/highlights/'
             '${normalized.split(':').last}/',
       },
     );
@@ -188,7 +215,9 @@ class IgRepository {
       throw HikerException('내려받을 수 있는 스토리를 찾지 못했습니다. 이미 만료되었을 수 있습니다.');
     }
     final user = posts.first.user;
-    final owner = user == null ? fallbackTitle : '@${user.username} · $fallbackTitle';
+    final owner = user == null
+        ? fallbackTitle
+        : '@${user.username} · $fallbackTitle';
     return ResolveResult(
       title: '$owner · ${posts.length}개',
       posts: posts,
@@ -243,7 +272,9 @@ class IgRepository {
       final next = raw.length > 1 ? raw[1]?.toString() : null;
       return MediaPage(
         posts: MediaParser.parsePosts(medias),
-        nextCursor: (next == null || next.isEmpty || next == 'null') ? null : next,
+        nextCursor: (next == null || next.isEmpty || next == 'null')
+            ? null
+            : next,
       );
     }
 

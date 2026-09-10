@@ -1,5 +1,6 @@
 import 'ig_asset.dart';
 import 'ig_user.dart';
+import 'media_source.dart';
 
 /// 게시물의 종류. HikerAPI 의 `media_type` 과 `product_type` 을 합쳐서 판정한다.
 enum PostKind { photo, video, reel, carousel, story }
@@ -48,6 +49,7 @@ class IgPost {
     required this.pk,
     required this.kind,
     required List<IgItem> items,
+    this.source = MediaSource.instagram,
     this.code,
     this.user,
     this.caption,
@@ -59,6 +61,7 @@ class IgPost {
   }) : items = List.unmodifiable(items);
 
   final String pk;
+  final MediaSource source;
   final String? code;
   final PostKind kind;
   final IgUser? user;
@@ -73,11 +76,14 @@ class IgPost {
   /// 다운로드 가능한 항목이 하나도 없으면 화면에 실패로 표시한다.
   bool get hasDownloadableAssets => items.any((item) => item.hasAssets);
 
-  String get authorName => user?.username ?? 'instagram';
+  String get authorName => user?.username ?? source.label.toLowerCase();
 
   String? get permalink {
     final c = code;
     if (c == null) return null;
+    if (source == MediaSource.threads) {
+      return 'https://www.threads.com/@$authorName/post/$c';
+    }
     return switch (kind) {
       PostKind.reel => 'https://www.instagram.com/reel/$c/',
       PostKind.story => 'https://www.instagram.com/stories/$authorName/$pk/',

@@ -1,8 +1,8 @@
 # Tandi
 
-인스타그램 게시물·릴스·캐러셀·스토리·하이라이트를 원본 화질로 내려받는 Flutter 앱입니다.
-미디어 정보는 [HikerAPI](https://hikerapi.com/) 를 통해 조회하고, 파일은 인스타그램 CDN 에서
-직접 스트리밍해 저장합니다.
+인스타그램 게시물·릴스·캐러셀·스토리·하이라이트와 Threads 공개 게시물을 내려받는 Flutter 앱입니다.
+인스타그램 정보는 [HikerAPI](https://hikerapi.com/), Threads 정보는 공개 embed 페이지를 통해
+조회하고, 파일은 각 서비스의 CDN 에서 직접 스트리밍해 저장합니다.
 
 ## 지원 범위
 
@@ -15,8 +15,9 @@
 | 하이라이트 | `instagram.com/stories/highlights/<id>/` | 하이라이트 항목 전부 |
 | 공유 링크 | `instagram.com/share/...`, `instagram.com/s/...` | 서버에서 원본을 찾아 처리 |
 | 프로필 | `instagram.com/<user>/`, `@user`, `user` | 프로필 화면에서 목록 탐색 |
+| Threads 게시물 | `threads.com/@<user>/post/<code>`, `threads.com/t/<code>` | 공개 사진·동영상·캐러셀 |
 
-공개 계정만 조회할 수 있습니다. 비공개 계정은 HikerAPI 가 접근하지 못합니다.
+공개 계정만 조회할 수 있습니다. 비공개 계정은 HikerAPI 또는 Threads 공개 embed가 접근하지 못합니다.
 
 ## 시작하기
 

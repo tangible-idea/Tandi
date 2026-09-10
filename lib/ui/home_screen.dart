@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../data/ig_url.dart';
+import '../models/media_source.dart';
 import '../services/download_service.dart';
 import '../state/resolve_controller.dart';
 import '../state/settings_controller.dart';
@@ -37,8 +38,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final settings = context.watch<SettingsController>();
-
     return Scaffold(
       appBar: AppBar(title: const Text('다운로드')),
       body: SafeArea(
@@ -47,9 +46,7 @@ class _HomeScreenState extends State<HomeScreen> {
             _inputBar(context),
             const Divider(height: 1),
             Expanded(
-              child: settings.isLoaded && !settings.hasApiKey
-                  ? _noApiKeyView()
-                  : _resultArea(context),
+              child: _resultArea(context),
             ),
           ],
         ),
@@ -78,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       textInputAction: TextInputAction.go,
                       onSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
-                        hintText: 'instagram.com/reel/... 또는 @계정명',
+                        hintText: 'instagram.com/... 또는 threads.net/...',
                         prefixIcon: const Icon(Icons.link),
                         suffixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -119,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                '게시물 · 릴스 · 캐러셀 · 스토리 · 하이라이트 링크를 지원합니다.',
+                '인스타그램 (게시물·릴스·스토리·하이라이트) 및 Threads 링크를 지원합니다.',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -133,9 +130,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _resultArea(BuildContext context) {
     final resolve = context.watch<ResolveController>();
+    final settings = context.watch<SettingsController>();
 
     if (resolve.isLoading) {
-      return const LoadingView(label: '인스타그램에서 정보를 가져오는 중…');
+      final isThreads = resolve.link?.source == MediaSource.threads;
+      return LoadingView(
+        label: isThreads ? 'Threads에서 정보를 가져오는 중…' : '미디어 정보를 가져오는 중…',
+      );
     }
 
     final error = resolve.error;
@@ -165,11 +166,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final result = resolve.result;
     if (result == null) {
-      return const MessageView(
+      final noKey = settings.isLoaded && !settings.hasApiKey;
+      return MessageView(
         icon: Icons.download_for_offline_outlined,
         title: '링크를 붙여넣어 주세요',
-        description: '인스타그램 앱이나 브라우저에서 복사한 주소를 위에 붙여넣으면\n'
-            '사진과 동영상을 원본 화질로 내려받습니다.',
+        description: noKey
+            ? '인스타그램 또는 Threads 게시물 주소를 위에 붙여넣으면\n'
+                '사진과 동영상을 원본 화질로 내려받습니다.\n\n'
+                '• Threads: API 키 없이 바로 다운로드 가능\n'
+                '• 인스타그램: 설정에서 HikerAPI 키 필요'
+            : '인스타그램 앱이나 Threads에서 복사한 주소를 위에 붙여넣으면\n'
+                '사진과 동영상을 원본 화질로 내려받습니다.',
+        actionLabel: noKey ? 'HikerAPI 키 설정' : null,
+        onAction: noKey ? widget.onOpenSettings : null,
       );
     }
 
@@ -216,15 +225,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-
-  Widget _noApiKeyView() => MessageView(
-    icon: Icons.key_outlined,
-    title: 'HikerAPI 키가 필요합니다',
-    description: '이 앱은 HikerAPI 를 통해 인스타그램 미디어 정보를 가져옵니다.\n'
-        '설정에서 액세스 키를 입력해 주세요.',
-    actionLabel: '설정 열기',
-    onAction: widget.onOpenSettings,
-  );
 
   Future<void> _pasteFromClipboard() async {
     final data = await Clipboard.getData(Clipboard.kTextPlain);

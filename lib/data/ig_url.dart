@@ -1,3 +1,5 @@
+import '../models/media_source.dart';
+
 /// 사용자가 붙여넣은 문자열이 무엇을 가리키는지 판정한 결과.
 enum IgLinkType {
   /// `/p/<code>/` — 사진 또는 캐러셀 게시물.
@@ -24,6 +26,12 @@ enum IgLinkType {
 
   /// `/<username>/` 또는 `@username` — 프로필.
   profile,
+
+  /// `threads.com/@<username>/post/<code>` 또는 `threads.com/t/<code>` — Threads 게시물.
+  threadsPost,
+
+  /// `threads.com/@<username>` — Threads 프로필.
+  threadsProfile,
 
   unknown,
 }
@@ -56,6 +64,12 @@ class IgLink {
   final String? normalizedUrl;
 
   bool get isKnown => type != IgLinkType.unknown;
+
+  /// 이 링크를 어느 서비스에서 조회해야 하는지.
+  MediaSource get source => switch (type) {
+    IgLinkType.threadsPost || IgLinkType.threadsProfile => MediaSource.threads,
+    _ => MediaSource.instagram,
+  };
 }
 
 /// 인스타그램 링크·단축코드·사용자명 문자열을 [IgLink] 로 해석한다.
@@ -65,10 +79,20 @@ class IgLink {
 class IgUrlParser {
   IgUrlParser._();
 
-  /// 인스타그램 단축코드에 쓰이는 문자 집합(base64url 계열)과 길이 범위.
-  static final RegExp _shortcode = RegExp(r'^[A-Za-z0-9_-]{5,24}$');
+  /// 인스타그램·Threads 단축코드에 쓰이는 문자 집합(base64url 계열)과 길이 범위.
+  static final RegExp _shortcode = RegExp(r'^[A-Za-z0-9_-]{5,35}$');
   static final RegExp _username = RegExp(r'^[A-Za-z0-9._]{1,30}$');
   static final RegExp _digits = RegExp(r'^\d+$');
+
+  static final RegExp _urlRegex = RegExp(
+    r'https?://[^\s<>"]+',
+    caseSensitive: false,
+  );
+
+  static final RegExp _bareUrlRegex = RegExp(
+    r'(?:[a-zA-Z0-9-]+\.)*(?:threads\.(?:com|net)|instagram\.com|instagr\.am|ig\.me)/[^\s<>"]*',
+    caseSensitive: false,
+  );
 
   /// 프로필로 오인하기 쉬운 인스타그램 자체 경로들.
   static const _reservedPaths = {
@@ -97,8 +121,14 @@ class IgUrlParser {
   };
 
   static IgLink parse(String input) {
-    final raw = input.trim();
+    var raw = input.trim();
     if (raw.isEmpty) return IgLink(type: IgLinkType.unknown, raw: raw);
+
+    // 텍스트 사이에 URL 이 섞여 있는 경우(메신저 공유 문구 등) URL 만 먼저 추출한다.
+    final urlMatch = _urlRegex.firstMatch(raw) ?? _bareUrlRegex.firstMatch(raw);
+    if (urlMatch != null) {
+      raw = urlMatch.group(0)!.replaceAll(RegExp(r'[),.;!?]+$'), '');
+    }
 
     // `@handle` 형태는 링크가 아니라 프로필 지정으로 본다.
     if (raw.startsWith('@')) {
@@ -115,6 +145,7 @@ class IgUrlParser {
 
     final uri = _tryParseUri(raw);
     if (uri == null) return _parseBareToken(raw);
+    if (_isThreadsHost(uri.host)) return _parseThreads(uri, raw);
     if (!_isInstagramHost(uri.host)) {
       return IgLink(type: IgLinkType.unknown, raw: raw);
     }
@@ -210,6 +241,96 @@ class IgUrlParser {
     }
   }
 
+  /// threads.com / threads.net 주소를 해석한다.
+  ///
+  /// Threads 는 게시물 주소 뒤에 캡션에서 만든 슬러그를 덧붙이는데
+  /// (`/@user/post/<code>/turn-a-thread-into-an-image`), 슬러그는 의미가 없으므로
+  /// 버리고 단축코드만 남긴다.
+  static IgLink _parseThreads(Uri uri, String raw) {
+    final segments = uri.pathSegments
+        .where((segment) => segment.isNotEmpty)
+        .toList();
+    if (segments.isEmpty) return IgLink(type: IgLinkType.unknown, raw: raw);
+
+    final first = segments.first.toLowerCase();
+
+    // `/t/<code>` 는 앱의 공유 단축 링크로, 서버가 정식 주소로 리디렉션해 준다.
+    if (first == 't') {
+      final code = segments.length > 1 ? segments[1] : null;
+      if (code == null || !_shortcode.hasMatch(code)) {
+        return IgLink(type: IgLinkType.unknown, raw: raw);
+      }
+      return IgLink(
+        type: IgLinkType.threadsPost,
+        raw: raw,
+        code: code,
+        normalizedUrl: 'https://www.threads.com/t/$code',
+      );
+    }
+
+    // `/share/<code>` 는 앱의 공유 링크.
+    if (first == 'share') {
+      final tail = segments.sublist(1);
+      final code = tail.isEmpty ? null : tail.last;
+      if (code == null || !_shortcode.hasMatch(code)) {
+        return IgLink(type: IgLinkType.unknown, raw: raw);
+      }
+      return IgLink(
+        type: IgLinkType.threadsPost,
+        raw: raw,
+        code: code,
+        normalizedUrl: 'https://www.threads.com/share/$code',
+      );
+    }
+
+    // `/post/<code>`
+    if (first == 'post') {
+      final code = segments.length > 1 ? segments[1] : null;
+      if (code == null || !_shortcode.hasMatch(code)) {
+        return IgLink(type: IgLinkType.unknown, raw: raw);
+      }
+      return IgLink(
+        type: IgLinkType.threadsPost,
+        raw: raw,
+        code: code,
+        normalizedUrl: 'https://www.threads.com/post/$code',
+      );
+    }
+
+    final hasAt = segments.first.startsWith('@');
+    final username = hasAt
+        ? segments.first.substring(1).toLowerCase()
+        : segments.first.toLowerCase();
+
+    if (_reservedPaths.contains(username) || !_username.hasMatch(username)) {
+      return IgLink(type: IgLinkType.unknown, raw: raw);
+    }
+
+    final isPost = segments.length > 2 && segments[1].toLowerCase() == 'post';
+    if (!isPost) {
+      if (!hasAt) {
+        return IgLink(type: IgLinkType.unknown, raw: raw);
+      }
+      return IgLink(
+        type: IgLinkType.threadsProfile,
+        raw: raw,
+        username: username,
+      );
+    }
+
+    final code = segments[2];
+    if (!_shortcode.hasMatch(code)) {
+      return IgLink(type: IgLinkType.unknown, raw: raw);
+    }
+    return IgLink(
+      type: IgLinkType.threadsPost,
+      raw: raw,
+      code: code,
+      username: username,
+      normalizedUrl: 'https://www.threads.com/@$username/post/$code',
+    );
+  }
+
   /// 주소가 아니라 단축코드나 사용자명만 붙여넣은 경우를 처리한다.
   static IgLink _parseBareToken(String raw) {
     if (raw.contains('/') || raw.contains(' ')) {
@@ -235,10 +356,19 @@ class IgUrlParser {
     return IgLink(type: IgLinkType.unknown, raw: raw);
   }
 
+  /// 스킴 없이 붙여넣어도 주소로 볼 수 있는 도메인들.
+  static const _bareHostHints = [
+    'instagram.com',
+    'threads.com',
+    'threads.net',
+  ];
+
   static Uri? _tryParseUri(String raw) {
-    final withScheme = raw.startsWith('http://') || raw.startsWith('https://')
+    final hasScheme = raw.startsWith('http://') || raw.startsWith('https://');
+    final looksLikeHost = _bareHostHints.any(raw.contains);
+    final withScheme = hasScheme
         ? raw
-        : (raw.contains('instagram.com') ? 'https://$raw' : raw);
+        : (looksLikeHost ? 'https://$raw' : raw);
     final uri = Uri.tryParse(withScheme);
     if (uri == null || !uri.hasScheme || uri.host.isEmpty) return null;
     return uri;
@@ -251,5 +381,14 @@ class IgUrlParser {
         normalized == 'instagr.am' ||
         normalized.endsWith('.instagr.am') ||
         normalized == 'ig.me';
+  }
+
+  /// Threads 는 threads.net 에서 threads.com 으로 옮겨 갔고 두 도메인이 모두 살아 있다.
+  static bool _isThreadsHost(String host) {
+    final normalized = host.toLowerCase();
+    return normalized == 'threads.com' ||
+        normalized.endsWith('.threads.com') ||
+        normalized == 'threads.net' ||
+        normalized.endsWith('.threads.net');
   }
 }
