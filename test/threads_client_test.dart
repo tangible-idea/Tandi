@@ -36,6 +36,43 @@ void main() {
     client.close();
   });
 
+  test('Threads /share/ 공유 링크의 리디렉션을 추적하여 원본 게시물을 조회한다', () async {
+    final httpClient = MockClient((request) async {
+      if (request.url.path.contains('/share/')) {
+        return http.Response(
+          '',
+          302,
+          headers: {
+            'location':
+                'https://www.threads.com/@thkim00/post/DdjE_sbEmK2?xmt=AQG0J1J',
+          },
+        );
+      }
+      expect(
+        request.url.toString(),
+        'https://www.threads.com/@thkim00/post/DdjE_sbEmK2/embed',
+      );
+      return http.Response('''
+        <div class="OuterContainer">
+          <a class="HeaderLink"><span>thkim00</span></a>
+          <div class="SoloMediaContainer">
+            <video><source src="https://cdn.example/thkim.mp4"></video>
+          </div>
+        </div>
+      ''', 200);
+    });
+    final client = ThreadsClient(httpClient: httpClient);
+
+    final post = await client.fetchPost(
+      IgUrlParser.parse('https://www.threads.com/share/FSpD8jz1t/'),
+    );
+
+    expect(post.authorName, 'thkim00');
+    expect(post.code, 'DdjE_sbEmK2');
+    expect(post.items.single.best?.url, 'https://cdn.example/thkim.mp4');
+    client.close();
+  });
+
   group('Threads embed 파싱', () {
     test('사진 게시물을 읽고 아바타와 링크 미리보기는 제외한다', () {
       const html = '''

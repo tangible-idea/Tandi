@@ -39,23 +39,33 @@ class ThreadsClient {
     // `/share/` 형태의 공유 링크는 먼저 리디렉션을 따라가 정식 게시물 주소를 알아낸다.
     if (sourceUri.pathSegments.contains('share')) {
       try {
-        final request = http.Request('GET', sourceUri)
-          ..followRedirects = true
-          ..maxRedirects = 5
-          ..headers.addAll(const {
-            'accept': 'text/html,application/xhtml+xml',
-            'user-agent':
-                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
-                'AppleWebKit/537.36 Safari/537.36',
-          });
-        final streamed = await _http.send(request).timeout(timeout);
-        final finalUrl = streamed.request?.url;
-        if (finalUrl != null) {
-          final redirectedLink = IgUrlParser.parse(finalUrl.toString());
-          if (redirectedLink.code != null) {
-            targetUri = finalUrl;
-            targetCode = redirectedLink.code!;
-            targetUsername = redirectedLink.username ?? targetUsername;
+        var currentUri = sourceUri;
+        for (var i = 0; i < 5; i++) {
+          final request = http.Request('GET', currentUri)
+            ..followRedirects = false
+            ..headers.addAll(const {
+              'accept': 'text/html,application/xhtml+xml',
+              'user-agent':
+                  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) '
+                  'AppleWebKit/537.36 Safari/537.36',
+            });
+          final streamed = await _http.send(request).timeout(timeout);
+          final location = streamed.headers['location'];
+          if (location != null && location.isNotEmpty) {
+            final nextUri = Uri.parse(location);
+            currentUri =
+                nextUri.hasScheme ? nextUri : currentUri.resolve(location);
+            final parsed = IgUrlParser.parse(currentUri.toString());
+            if (parsed.code != null) {
+              targetCode = parsed.code!;
+              targetUsername = parsed.username ?? targetUsername;
+            }
+            if (parsed.username != null) {
+              targetUri = currentUri;
+              break;
+            }
+          } else {
+            break;
           }
         }
       } catch (_) {
@@ -63,10 +73,11 @@ class ThreadsClient {
       }
     }
 
-    final embedUri = targetUri.replace(
+    final embedUri = Uri(
+      scheme: targetUri.scheme,
+      host: targetUri.host,
+      port: targetUri.hasPort ? targetUri.port : null,
       path: '${targetUri.path.replaceFirst(RegExp(r'/+$'), '')}/embed',
-      query: null,
-      fragment: null,
     );
 
     final http.Response response;
@@ -85,6 +96,7 @@ class ThreadsClient {
     } on TimeoutException {
       throw HikerException('Threads 요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.');
     } catch (error) {
+      if (error is HikerException) rethrow;
       throw HikerException('Threads에 연결할 수 없습니다.', detail: '$error');
     }
 
