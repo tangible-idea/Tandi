@@ -13,9 +13,16 @@ import 'widgets/state_views.dart';
 
 /// 계정 하나의 게시물·릴스·스토리를 훑어보고 골라 받는 화면.
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key, required this.onOpenSettings});
+  const ProfileScreen({
+    super.key,
+    required this.onOpenSettings,
+    required this.onOpenDownloads,
+  });
 
   final VoidCallback onOpenSettings;
+
+  /// 큐에 파일을 넣은 뒤 진행 상황을 보여 주기 위해 목록 탭으로 넘어간다.
+  final VoidCallback onOpenDownloads;
 
   @override
   State<ProfileScreen> createState() => ProfileScreenState();
@@ -280,6 +287,9 @@ class ProfileScreenState extends State<ProfileScreen> {
               alignment: Alignment.centerRight,
               child: TextButton.icon(
                 onPressed: () {
+                  // 계정명 입력창에 포커스가 남아 있으면 키보드가 목록을 가린다.
+                  FocusScope.of(context).unfocus();
+
                   final settings = context.read<SettingsController>();
                   final count = context.read<DownloadService>().enqueueAll(
                     controller.posts,
@@ -293,6 +303,8 @@ class ProfileScreenState extends State<ProfileScreen> {
                         behavior: SnackBarBehavior.floating,
                       ),
                     );
+                  // 큐에 실제로 들어간 게 있을 때만 넘어간다.
+                  if (count > 0) widget.onOpenDownloads();
                 },
                 icon: const Icon(Icons.download),
                 label: Text('보이는 ${controller.posts.length}개 전부 받기'),

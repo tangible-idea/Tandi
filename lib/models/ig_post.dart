@@ -41,6 +41,22 @@ class IgItem {
 
   IgAsset? get best => variants.isEmpty ? null : variants.first;
   IgAsset? get smallest => variants.isEmpty ? null : variants.last;
+
+  IgItem copyWith({
+    String? id,
+    AssetKind? kind,
+    List<IgAsset>? variants,
+    String? thumbnailUrl,
+    double? durationSeconds,
+  }) {
+    return IgItem(
+      id: id ?? this.id,
+      kind: kind ?? this.kind,
+      variants: variants ?? this.variants,
+      thumbnailUrl: thumbnailUrl ?? this.thumbnailUrl,
+      durationSeconds: durationSeconds ?? this.durationSeconds,
+    );
+  }
 }
 
 /// 다운로드 대상이 되는 게시물 하나.
@@ -72,6 +88,36 @@ class IgPost {
   final int? playCount;
   final int? commentCount;
   final List<IgItem> items;
+
+  IgPost copyWith({
+    String? pk,
+    MediaSource? source,
+    String? code,
+    PostKind? kind,
+    IgUser? user,
+    String? caption,
+    DateTime? takenAt,
+    int? likeCount,
+    int? viewCount,
+    int? playCount,
+    int? commentCount,
+    List<IgItem>? items,
+  }) {
+    return IgPost(
+      pk: pk ?? this.pk,
+      source: source ?? this.source,
+      code: code ?? this.code,
+      kind: kind ?? this.kind,
+      user: user ?? this.user,
+      caption: caption ?? this.caption,
+      takenAt: takenAt ?? this.takenAt,
+      likeCount: likeCount ?? this.likeCount,
+      viewCount: viewCount ?? this.viewCount,
+      playCount: playCount ?? this.playCount,
+      commentCount: commentCount ?? this.commentCount,
+      items: items ?? this.items,
+    );
+  }
 
   /// 다운로드 가능한 항목이 하나도 없으면 화면에 실패로 표시한다.
   bool get hasDownloadableAssets => items.any((item) => item.hasAssets);

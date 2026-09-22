@@ -18,6 +18,7 @@ class RootShell extends StatefulWidget {
 class _RootShellState extends State<RootShell> {
   static const int _homeIndex = 0;
   static const int _profileIndex = 1;
+  static const int _downloadsIndex = 2;
   static const int _settingsIndex = 3;
 
   int _index = _homeIndex;
@@ -61,10 +62,12 @@ class _RootShellState extends State<RootShell> {
         HomeScreen(
           onOpenSettings: () => setState(() => _index = _settingsIndex),
           onOpenProfile: _openProfile,
+          onOpenDownloads: _openDownloads,
         ),
         ProfileScreen(
           key: _profileKey,
           onOpenSettings: () => setState(() => _index = _settingsIndex),
+          onOpenDownloads: _openDownloads,
         ),
         const DownloadsScreen(),
         const SettingsScreen(),
@@ -116,6 +119,11 @@ class _RootShellState extends State<RootShell> {
         ],
       ),
     );
+  }
+
+  void _openDownloads() {
+    if (_index == _downloadsIndex) return;
+    setState(() => _index = _downloadsIndex);
   }
 
   void _openProfile(String username) {

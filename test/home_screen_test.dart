@@ -35,6 +35,11 @@ class _NoKeyStore extends SettingsStore {
   Future<bool> writeSaveToGallery(bool value) async => true;
 }
 
+class _KeyedStore extends _NoKeyStore {
+  @override
+  Future<String?> readApiKey() async => 'test-key';
+}
+
 void main() {
   testWidgets('API 키가 없어도 Threads 게시물을 정상적으로 가져와 화면에 표시한다', (tester) async {
     final store = _NoKeyStore();
@@ -69,6 +74,7 @@ void main() {
           home: HomeScreen(
             onOpenSettings: () {},
             onOpenProfile: (_) {},
+            onOpenDownloads: () {},
           ),
         ),
       ),
@@ -114,6 +120,7 @@ void main() {
           home: HomeScreen(
             onOpenSettings: () => settingsOpened = true,
             onOpenProfile: (_) {},
+            onOpenDownloads: () {},
           ),
         ),
       ),
@@ -136,5 +143,76 @@ void main() {
 
     await tester.tap(find.text('설정 열기'));
     expect(settingsOpened, isTrue);
+  });
+
+  testWidgets('전체 받기를 누르면 키보드를 내리고 다운로드 목록 탭으로 넘어간다', (tester) async {
+    final store = _KeyedStore();
+    final settings = SettingsController(store);
+    await settings.load();
+
+    // 스토리 두 건을 돌려주면 결과가 여러 개라 '전체 받기' 버튼이 나타난다.
+    final hikerHttpClient = MockClient((request) async {
+      expect(request.url.path, '/v1/user/stories/by/username');
+      return http.Response(
+        '[{"pk":"111","media_type":1,"product_type":"story",'
+        '"user":{"pk":"222","username":"nasa"},'
+        '"thumbnail_url":"https://cdn.example/s1.jpg"},'
+        '{"pk":"333","media_type":1,"product_type":"story",'
+        '"user":{"pk":"222","username":"nasa"},'
+        '"thumbnail_url":"https://cdn.example/s2.jpg"}]',
+        200,
+        headers: {'content-type': 'application/json'},
+      );
+    });
+
+    final hikerClient = HikerClient(
+      readApiKey: () => settings.apiKey,
+      httpClient: hikerHttpClient,
+    );
+    final repository = IgRepository(hikerClient);
+    final resolveController = ResolveController(repository);
+    final downloadService = DownloadService(settings: store);
+
+    var downloadsOpened = 0;
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: settings),
+          ChangeNotifierProvider.value(value: downloadService),
+          ChangeNotifierProvider.value(value: resolveController),
+        ],
+        child: MaterialApp(
+          home: HomeScreen(
+            onOpenSettings: () {},
+            onOpenProfile: (_) {},
+            onOpenDownloads: () => downloadsOpened++,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.byType(TextField),
+      'https://www.instagram.com/stories/nasa/',
+    );
+    await tester.tap(find.text('가져오기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('전체 받기'), findsOneWidget);
+
+    // 결과가 뜬 뒤 다시 입력창을 만져 키보드가 올라온 상태를 만든다.
+    await tester.tap(find.byType(TextField));
+    await tester.pumpAndSettle();
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.focusNode?.hasFocus, isTrue, reason: '탭 후 입력창에 포커스가 있어야 한다');
+
+    await tester.tap(find.text('전체 받기'));
+    await tester.pumpAndSettle();
+
+    expect(field.focusNode?.hasFocus, isFalse, reason: '키보드를 내려야 한다');
+    expect(downloadsOpened, 1, reason: '목록 탭으로 한 번 넘어가야 한다');
+    expect(downloadService.items, isNotEmpty);
   });
 }

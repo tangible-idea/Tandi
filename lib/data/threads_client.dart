@@ -111,7 +111,7 @@ class ThreadsClient {
     }
 
     final body = utf8.decode(response.bodyBytes, allowMalformed: true);
-    final post = parseEmbed(
+    var post = parseEmbed(
       body,
       code: targetCode,
       fallbackUsername: targetUsername,
@@ -122,7 +122,55 @@ class ThreadsClient {
         '텍스트·링크 전용 게시물일 수 있습니다.',
       );
     }
+
+    // 동영상 등 썸네일이 누락된 항목이 있으면 og:image 메타태그에서 고해상도 썸네일을 보완한다.
+    if (post.items.any((item) => item.thumbnailUrl == null)) {
+      final ogThumbnail = await _fetchOgThumbnail(targetUri);
+      if (ogThumbnail != null) {
+        post = post.copyWith(
+          items: post.items.map((item) {
+            if (item.thumbnailUrl == null) {
+              return item.copyWith(thumbnailUrl: ogThumbnail);
+            }
+            return item;
+          }).toList(),
+        );
+      }
+    }
+
     return post;
+  }
+
+  Future<String?> _fetchOgThumbnail(Uri uri) async {
+    try {
+      final response = await _http.get(
+        uri,
+        headers: const {
+          'user-agent':
+              'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)',
+          'accept': 'text/html,application/xhtml+xml',
+        },
+      ).timeout(const Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final match = RegExp(
+          r'<meta\s+property=["\x27]og:image["\x27]\s+content=["\x27]([^"\x27]+)["\x27]',
+          caseSensitive: false,
+        ).firstMatch(response.body);
+        if (match != null) {
+          final rawUrl = match.group(1);
+          if (rawUrl != null && rawUrl.isNotEmpty) {
+            final unescaped = rawUrl.replaceAll('&amp;', '&');
+            if (_isDownloadUrl(unescaped) && !unescaped.contains('kHwIMM5b8PW')) {
+              return unescaped;
+            }
+          }
+        }
+      }
+    } catch (_) {
+      // 썸네일 조회 실패는 전체 게시물 조회를 중단하지 않는다.
+    }
+    return null;
   }
 
   /// 네트워크 없이 embed HTML을 앱의 공통 게시물 모델로 바꾼다.

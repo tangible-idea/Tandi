@@ -16,10 +16,14 @@ class HomeScreen extends StatefulWidget {
     super.key,
     required this.onOpenSettings,
     required this.onOpenProfile,
+    required this.onOpenDownloads,
   });
 
   final VoidCallback onOpenSettings;
   final void Function(String username) onOpenProfile;
+
+  /// 큐에 파일을 넣은 뒤 진행 상황을 보여 주기 위해 목록 탭으로 넘어간다.
+  final VoidCallback onOpenDownloads;
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -201,6 +205,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 if (result.posts.length > 1)
                   TextButton.icon(
                     onPressed: () {
+                      // 입력창에 포커스가 남아 있으면 키보드가 목록을 가리므로 먼저 내린다.
+                      FocusScope.of(context).unfocus();
+
                       final settings = context.read<SettingsController>();
                       final count = context
                           .read<DownloadService>()
@@ -209,6 +216,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             quality: settings.quality,
                           );
                       _toast('$count개 파일을 다운로드에 추가했습니다.');
+                      // 큐에 실제로 들어간 게 있을 때만 넘어간다.
+                      if (count > 0) widget.onOpenDownloads();
                     },
                     icon: const Icon(Icons.download),
                     label: const Text('전체 받기'),
