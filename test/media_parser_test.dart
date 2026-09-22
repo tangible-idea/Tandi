@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tandi/data/media_parser.dart';
-import 'package:tandi/models/ig_asset.dart';
-import 'package:tandi/models/ig_post.dart';
+import 'package:townloader/data/media_parser.dart';
+import 'package:townloader/models/ig_asset.dart';
+import 'package:townloader/models/ig_post.dart';
 
 /// 아래 픽스처는 HikerAPI 의 실제 응답 형태를 그대로 줄인 것이다.
 /// 필드 이름과 중첩 구조가 바뀌면 이 테스트가 먼저 깨져야 한다.

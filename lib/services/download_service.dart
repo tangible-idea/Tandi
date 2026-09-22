@@ -254,7 +254,7 @@ class DownloadService extends ChangeNotifier {
       // 샌드박스 컨테이너에서는 캐시 폴더가 아직 없을 수 있어 직접 만들어야 한다.
       await tempDir.create(recursive: true);
       tempFile = File(
-        '${tempDir.path}/tandi_${DateTime.now().microsecondsSinceEpoch}_${item.filename}',
+        '${tempDir.path}/townloader_${DateTime.now().microsecondsSinceEpoch}_${item.filename}',
       );
       sink = tempFile.openWrite();
 

@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tandi/config/app_config.dart';
-import 'package:tandi/services/settings_store.dart';
-import 'package:tandi/state/settings_controller.dart';
+import 'package:townloader/config/app_config.dart';
+import 'package:townloader/services/settings_store.dart';
+import 'package:townloader/state/settings_controller.dart';
 
 class _Store extends SettingsStore {
   _Store(this._key);

@@ -16,7 +16,7 @@ DEFINES  := $(if $(wildcard $(ENV_FILE)),--dart-define-from-file=$(ENV_FILE),)
 DEVICE     ?=
 DEVICE_ARG := $(if $(DEVICE),-d $(DEVICE),)
 
-.PHONY: run ios macos devices test analyze ipa apk env-check
+.PHONY: run ios macos devices test analyze ipa apk ipa-internal apk-internal env-check
 
 run:
 	flutter run $(DEFINES) $(DEVICE_ARG)
@@ -36,10 +36,21 @@ test:
 analyze:
 	flutter analyze
 
+# 스토어 배포용은 키를 심지 않는다. 배포본에 심은 키는 바이너리에서 추출할 수
+# 있고 HikerAPI 는 호출 건수로 과금하므로, 공개 배포본에 키가 들어가면 크레딧이
+# 그대로 소진된다. 사용자는 설정 화면에서 자기 키를 넣는다.
 ipa:
-	flutter build ipa $(DEFINES)
+	flutter build ipa
 
 apk:
+	flutter build apk
+
+# 키를 심은 빌드. 내부 테스터에게만 돌릴 때 쓴다.
+# 받은 사람이 IPA 를 뜯으면 키를 꺼낼 수 있다는 점을 알고 쓸 것.
+ipa-internal:
+	flutter build ipa $(DEFINES)
+
+apk-internal:
 	flutter build apk $(DEFINES)
 
 # 키가 심긴 채로 빌드되는지 확인만 한다. 값 자체는 출력하지 않는다.

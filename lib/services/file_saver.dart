@@ -25,13 +25,13 @@ class SaveException implements Exception {
 
 /// 내려받은 임시 파일을 플랫폼에 맞는 최종 위치로 옮긴다.
 ///
-/// 데스크톱은 `~/Downloads/Tandi/<계정>/` 아래에 파일을 두고,
-/// 모바일은 사진 앱의 Tandi 앨범에 넣는다. 모바일에서 앨범 저장을 끄면
+/// 데스크톱은 `~/Downloads/Townloader/<계정>/` 아래에 파일을 두고,
+/// 모바일은 사진 앱의 Townloader 앨범에 넣는다. 모바일에서 앨범 저장을 끄면
 /// 앱 문서 폴더에만 남는다.
 class MediaFileSaver {
   const MediaFileSaver();
 
-  static const String albumName = 'Tandi';
+  static const String albumName = 'Townloader';
 
   /// 데스크톱(파일 시스템이 사용자에게 그대로 보이는 플랫폼)인지.
   static bool get isDesktop =>

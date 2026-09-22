@@ -4,20 +4,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:tandi/data/hiker_client.dart';
-import 'package:tandi/data/ig_repository.dart';
-import 'package:tandi/models/ig_asset.dart';
-import 'package:tandi/models/ig_post.dart';
-import 'package:tandi/models/ig_user.dart';
-import 'package:tandi/services/download_service.dart';
-import 'package:tandi/services/settings_store.dart';
-import 'package:tandi/state/profile_controller.dart';
-import 'package:tandi/state/resolve_controller.dart';
-import 'package:tandi/state/settings_controller.dart';
-import 'package:tandi/ui/root_shell.dart';
-import 'package:tandi/ui/settings_screen.dart';
-import 'package:tandi/ui/theme.dart';
-import 'package:tandi/ui/widgets/post_card.dart';
+import 'package:townloader/data/hiker_client.dart';
+import 'package:townloader/data/ig_repository.dart';
+import 'package:townloader/models/ig_asset.dart';
+import 'package:townloader/models/ig_post.dart';
+import 'package:townloader/models/ig_user.dart';
+import 'package:townloader/services/download_service.dart';
+import 'package:townloader/services/settings_store.dart';
+import 'package:townloader/state/profile_controller.dart';
+import 'package:townloader/state/resolve_controller.dart';
+import 'package:townloader/state/settings_controller.dart';
+import 'package:townloader/ui/root_shell.dart';
+import 'package:townloader/ui/settings_screen.dart';
+import 'package:townloader/ui/theme.dart';
+import 'package:townloader/ui/widgets/post_card.dart';
 
 /// 실제 위젯을 PNG 로 렌더링해 `test/goldens/` 에 남긴다.
 ///

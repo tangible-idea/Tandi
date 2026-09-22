@@ -13,14 +13,14 @@ import 'ui/root_shell.dart';
 import 'ui/theme.dart';
 
 /// 의존성을 조립하고 최상위 화면을 띄운다.
-class TandiApp extends StatefulWidget {
-  const TandiApp({super.key});
+class TownloaderApp extends StatefulWidget {
+  const TownloaderApp({super.key});
 
   @override
-  State<TandiApp> createState() => _TandiAppState();
+  State<TownloaderApp> createState() => _TownloaderAppState();
 }
 
-class _TandiAppState extends State<TandiApp> {
+class _TownloaderAppState extends State<TownloaderApp> {
   late final SettingsStore _store = SettingsStore();
   late final SettingsController _settings = SettingsController(_store);
 
@@ -60,7 +60,7 @@ class _TandiAppState extends State<TandiApp> {
         ChangeNotifierProvider(create: (_) => ProfileController(_repository)),
       ],
       child: MaterialApp(
-        title: 'Tandi',
+        title: 'Townloader',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.light(),
         darkTheme: AppTheme.dark(),

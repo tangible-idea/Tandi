@@ -60,7 +60,7 @@ class SettingsStore {
   static const _keySaveToGallery = 'save_to_gallery';
 
   /// 키체인이 정말 동작하는지 한 번만 확인하고 결과를 재사용한다.
-  static const _canary = '__tandi_probe';
+  static const _canary = '__townloader_probe';
 
   Future<SettingsBackend>? _backendProbe;
   Map<String, String>? _fileCache;

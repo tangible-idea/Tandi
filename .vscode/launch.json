@@ -2,20 +2,20 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Tandi (키 심어서 실행)",
+      "name": "Townloader (키 심어서 실행)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
       "toolArgs": ["--dart-define-from-file=.env.json"]
     },
     {
-      "name": "Tandi (키 없이 실행)",
+      "name": "Townloader (키 없이 실행)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart"
     },
     {
-      "name": "Tandi (릴리스 · 키 심어서)",
+      "name": "Townloader (릴리스 · 키 심어서)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",

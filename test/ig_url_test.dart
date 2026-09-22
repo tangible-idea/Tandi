@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tandi/data/ig_url.dart';
-import 'package:tandi/models/media_source.dart';
+import 'package:townloader/data/ig_url.dart';
+import 'package:townloader/models/media_source.dart';
 
 void main() {
   group('게시물 · 릴스 링크', () {

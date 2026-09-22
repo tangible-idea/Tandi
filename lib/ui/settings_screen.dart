@@ -217,10 +217,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: const Text('저장 위치'),
                     subtitle: Text(
                       MediaFileSaver.isDesktop
-                          ? '다운로드 폴더 아래 Tandi/<계정명>/'
+                          ? '다운로드 폴더 아래 Townloader/<계정명>/'
                           : settings.saveToGallery
-                          ? '사진 앱의 Tandi 앨범'
-                          : '앱 문서 폴더의 Tandi 폴더',
+                          ? '사진 앱의 Townloader 앨범'
+                          : '앱 문서 폴더의 Townloader 폴더',
                     ),
                   ),
                 ),

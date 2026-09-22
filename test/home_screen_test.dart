@@ -3,14 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:provider/provider.dart';
-import 'package:tandi/data/hiker_client.dart';
-import 'package:tandi/data/ig_repository.dart';
-import 'package:tandi/data/threads_client.dart';
-import 'package:tandi/services/download_service.dart';
-import 'package:tandi/services/settings_store.dart';
-import 'package:tandi/state/resolve_controller.dart';
-import 'package:tandi/state/settings_controller.dart';
-import 'package:tandi/ui/home_screen.dart';
+import 'package:townloader/data/hiker_client.dart';
+import 'package:townloader/data/ig_repository.dart';
+import 'package:townloader/data/threads_client.dart';
+import 'package:townloader/services/download_service.dart';
+import 'package:townloader/services/settings_store.dart';
+import 'package:townloader/state/resolve_controller.dart';
+import 'package:townloader/state/settings_controller.dart';
+import 'package:townloader/ui/home_screen.dart';
 
 class _NoKeyStore extends SettingsStore {
   @override

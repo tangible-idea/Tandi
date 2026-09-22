@@ -1,4 +1,4 @@
-package com.tandi.tandi
+package net.tangibleidea.townloader
 
 import io.flutter.embedding.android.FlutterActivity
 

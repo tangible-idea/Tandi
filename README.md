@@ -1,4 +1,4 @@
-# Tandi
+# Townloader
 
 인스타그램 게시물·릴스·캐러셀·스토리·하이라이트와 Threads 공개 게시물을 내려받는 Flutter 앱입니다.
 인스타그램 정보는 [HikerAPI](https://hikerapi.com/), Threads 정보는 공개 embed 페이지를 통해
@@ -77,8 +77,8 @@ flutter run --dart-define-from-file=.env.json -d <기기>
 
 | 플랫폼 | 위치 |
 | --- | --- |
-| macOS · Windows · Linux | `~/Downloads/Tandi/<계정명>/` |
-| iOS · Android | 사진 앱의 `Tandi` 앨범 (설정에서 끄면 앱 문서 폴더) |
+| macOS · Windows · Linux | `~/Downloads/Townloader/<계정명>/` |
+| iOS · Android | 사진 앱의 `Townloader` 앨범 (설정에서 끄면 앱 문서 폴더) |
 
 파일명은 `계정명_단축코드.확장자` 이고, 캐러셀은 `계정명_단축코드_1.jpg` 처럼 번호가 붙습니다.
 같은 이름이 이미 있으면 `-2` 가 덧붙어 덮어쓰지 않습니다.

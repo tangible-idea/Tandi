@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tandi/models/ig_asset.dart';
-import 'package:tandi/models/ig_post.dart';
-import 'package:tandi/models/ig_user.dart';
-import 'package:tandi/services/download_service.dart';
+import 'package:townloader/models/ig_asset.dart';
+import 'package:townloader/models/ig_post.dart';
+import 'package:townloader/models/ig_user.dart';
+import 'package:townloader/services/download_service.dart';
 
 IgPost _post({
   required String pk,

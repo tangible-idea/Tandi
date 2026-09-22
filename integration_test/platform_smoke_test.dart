@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:tandi/services/file_saver.dart';
-import 'package:tandi/services/settings_store.dart';
+import 'package:townloader/services/file_saver.dart';
+import 'package:townloader/services/settings_store.dart';
 
 /// 실제 기기에서만 확인할 수 있는 것들을 점검한다.
 ///
@@ -60,7 +60,7 @@ void main() {
                 await getApplicationDocumentsDirectory()
           : await getApplicationDocumentsDirectory();
 
-      final dir = Directory('${base.path}/Tandi/_smoke_test');
+      final dir = Directory('${base.path}/Townloader/_smoke_test');
       await dir.create(recursive: true);
 
       final file = File('${dir.path}/probe.txt');
@@ -76,7 +76,7 @@ void main() {
       // 폴더가 아직 없어서, 만들지 않고 열면 PathNotFoundException 이 난다.
       await temp.create(recursive: true);
 
-      final file = File('${temp.path}/tandi_probe.bin');
+      final file = File('${temp.path}/townloader_probe.bin');
       final sink = file.openWrite();
       sink.add(List<int>.filled(1024, 7));
       await sink.flush();

@@ -1,10 +1,10 @@
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:tandi/data/ig_url.dart';
-import 'package:tandi/data/threads_client.dart';
-import 'package:tandi/models/ig_asset.dart';
-import 'package:tandi/models/ig_post.dart';
+import 'package:townloader/data/ig_url.dart';
+import 'package:townloader/data/threads_client.dart';
+import 'package:townloader/models/ig_asset.dart';
+import 'package:townloader/models/ig_post.dart';
 
 void main() {
   test('Threads 주소를 공식 embed 경로로 조회한다', () async {
