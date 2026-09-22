@@ -22,7 +22,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void initState() {
     super.initState();
     _keyController = TextEditingController(
-      text: context.read<SettingsController>().apiKey ?? '',
+      // 심어 둔 키가 아니라 사용자가 직접 넣은 키만 보여 준다.
+      text: context.read<SettingsController>().userApiKey ?? '',
     );
   }
 
@@ -114,7 +115,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '설정됨',
+                                    settings.usesBundledKey
+                                        ? '기본 키 사용 중'
+                                        : '설정됨',
                                     style: theme.textTheme.bodySmall,
                                   ),
                                 ],
@@ -122,6 +125,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ],
                         ),
                         const SizedBox(height: 12),
+                        if (settings.usesBundledKey)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Text(
+                              '이 빌드에 포함된 기본 키로 동작 중입니다. 위에 직접 키를 넣으면 그 키가 '
+                              '대신 쓰입니다.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                          ),
                         Text(
                           switch (settings.backend) {
                             SettingsBackend.keychain =>

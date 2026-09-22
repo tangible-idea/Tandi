@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# 빌드에 심는 비밀값. 예시 파일(.env.json.example)만 커밋한다.
+.env.json
