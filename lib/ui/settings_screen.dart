@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../services/file_saver.dart';
 import '../services/settings_store.dart';
@@ -47,7 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _sectionTitle(context, 'HikerAPI (인스타그램)'),
+                _sectionTitle(context, '인스타그램 API'),
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -59,7 +58,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           obscureText: _obscured,
                           decoration: InputDecoration(
                             labelText: '액세스 키',
-                            hintText: 'HikerAPI 대시보드의 access key',
+                            hintText: '액세스 키를 입력해 주세요',
                             prefixIcon: const Icon(Icons.key_outlined),
                             suffixIcon: IconButton(
                               icon: Icon(
@@ -96,14 +95,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               },
                               child: const Text('저장'),
                             ),
-                            const SizedBox(width: 12),
-                            TextButton(
-                              onPressed: () => launchUrl(
-                                Uri.parse('https://hikerapi.com/'),
-                                mode: LaunchMode.externalApplication,
-                              ),
-                              child: const Text('키 발급받기'),
-                            ),
                             const Spacer(),
                             if (settings.hasApiKey)
                               Row(
@@ -139,7 +130,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Text(
                           switch (settings.backend) {
                             SettingsBackend.keychain =>
-                              '키는 기기 키체인에 보관되며 HikerAPI 외에는 전송되지 않습니다.',
+                              '키는 기기 키체인에 안전하게 보관됩니다.',
                             SettingsBackend.containerFile =>
                               '이 빌드는 키체인을 쓸 수 없어(개발자 서명 없음) 키를 앱 컨테이너 안의 '
                                   '파일에 저장합니다. 다른 앱은 읽을 수 없지만 키체인만큼 보호되지는 '
@@ -149,20 +140,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             color: settings.backend == SettingsBackend.keychain
                                 ? theme.colorScheme.onSurfaceVariant
                                 : theme.colorScheme.error,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'HikerAPI는 인스타그램 미디어 조회에만 사용됩니다. Threads 다운로드는 키 없이 바로 이용하실 수 있습니다.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'HikerAPI 는 호출 건수만큼 과금되므로 목록을 여러 번 새로 고치면 비용이 늘어납니다.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                       ],

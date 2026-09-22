@@ -79,7 +79,7 @@ class ProfileScreenState extends State<ProfileScreen> {
               child: settings.isLoaded && !settings.hasApiKey
                   ? MessageView(
                       icon: Icons.key_outlined,
-                      title: 'HikerAPI 키가 필요합니다',
+                      title: '액세스 키가 필요합니다',
                       description: '설정에서 액세스 키를 입력해 주세요.',
                       actionLabel: '설정 열기',
                       onAction: widget.onOpenSettings,

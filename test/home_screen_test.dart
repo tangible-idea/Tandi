@@ -81,8 +81,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // 초기 상태에서 Threads는 키 없이 바로 받을 수 있다는 안내가 표시된다.
-    expect(find.textContaining('Threads: API 키 없이 바로 다운로드 가능'), findsOneWidget);
+    // 초기 상태에서 링크 붙여넣기 안내가 표시된다.
+    expect(find.text('링크를 붙여넣어 주세요'), findsOneWidget);
 
     // Threads 주소를 입력하고 가져오기를 누른다.
     await tester.enterText(
@@ -97,7 +97,7 @@ void main() {
     expect(find.text('@testuser · Threads · 사진'), findsOneWidget);
   });
 
-  testWidgets('API 키가 없을 때 인스타그램 링크를 조회하면 HikerAPI 키 설정 안내를 표시한다', (tester) async {
+  testWidgets('API 키가 없을 때 인스타그램 링크를 조회하면 액세스 키 설정 안내를 표시한다', (tester) async {
     final store = _NoKeyStore();
     final settings = SettingsController(store);
     await settings.load();
@@ -138,7 +138,7 @@ void main() {
 
     // 오류 안내와 설정 열기 버튼이 표시된다.
     expect(find.text('가져오지 못했습니다'), findsOneWidget);
-    expect(find.textContaining('HikerAPI 액세스 키가 설정되지 않았습니다'), findsOneWidget);
+    expect(find.textContaining('액세스 키가 설정되지 않았습니다'), findsOneWidget);
     expect(find.text('설정 열기'), findsOneWidget);
 
     await tester.tap(find.text('설정 열기'));

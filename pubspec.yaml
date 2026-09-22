@@ -43,6 +43,9 @@ dependencies:
   url_launcher: ^6.3.2
   share_plus: ^13.3.0
 
+dependency_overrides:
+  path_provider_foundation: 2.5.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

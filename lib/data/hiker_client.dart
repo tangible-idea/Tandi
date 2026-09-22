@@ -45,7 +45,7 @@ class HikerClient {
     final key = readApiKey();
     if (key == null || key.isEmpty) {
       throw HikerException(
-        'HikerAPI 액세스 키가 설정되지 않았습니다. 설정 화면에서 키를 입력해 주세요.',
+        '액세스 키가 설정되지 않았습니다. 설정 화면에서 키를 입력해 주세요.',
         statusCode: 401,
       );
     }
@@ -101,11 +101,11 @@ class HikerClient {
 
     final message = switch (response.statusCode) {
       400 => detail ?? '요청 형식이 올바르지 않습니다.',
-      401 || 403 => 'HikerAPI 액세스 키가 올바르지 않거나 만료되었습니다.',
-      402 => 'HikerAPI 잔액이 부족합니다. 대시보드에서 크레딧을 충전해 주세요.',
+      401 || 403 => '액세스 키가 올바르지 않거나 만료되었습니다.',
+      402 => '요청 한도를 초과했습니다.',
       404 => '해당 게시물을 찾을 수 없습니다. 삭제되었거나 비공개 계정일 수 있습니다.',
       429 => '요청이 너무 잦습니다. 잠시 후 다시 시도해 주세요.',
-      >= 500 => 'HikerAPI 서버에 일시적인 문제가 있습니다. 잠시 후 다시 시도해 주세요.',
+      >= 500 => '서버에 일시적인 문제가 있습니다. 잠시 후 다시 시도해 주세요.',
       _ => detail ?? '요청에 실패했습니다 (HTTP ${response.statusCode}).',
     };
 

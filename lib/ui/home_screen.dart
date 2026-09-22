@@ -170,19 +170,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final result = resolve.result;
     if (result == null) {
-      final noKey = settings.isLoaded && !settings.hasApiKey;
-      return MessageView(
+      return const MessageView(
         icon: Icons.download_for_offline_outlined,
         title: '링크를 붙여넣어 주세요',
-        description: noKey
-            ? '인스타그램 또는 Threads 게시물 주소를 위에 붙여넣으면\n'
-                '사진과 동영상을 원본 화질로 내려받습니다.\n\n'
-                '• Threads: API 키 없이 바로 다운로드 가능\n'
-                '• 인스타그램: 설정에서 HikerAPI 키 필요'
-            : '인스타그램 앱이나 Threads에서 복사한 주소를 위에 붙여넣으면\n'
-                '사진과 동영상을 원본 화질로 내려받습니다.',
-        actionLabel: noKey ? 'HikerAPI 키 설정' : null,
-        onAction: noKey ? widget.onOpenSettings : null,
+        description: '인스타그램 앱이나 Threads에서 복사한 주소를 위에 붙여넣으면\n'
+            '사진과 동영상을 원본 화질로 내려받습니다.',
       );
     }
 
