@@ -6,12 +6,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:townloader/data/hiker_client.dart';
 import 'package:townloader/data/ig_repository.dart';
 import 'package:townloader/data/ig_url.dart';
+import 'package:townloader/l10n/strings.dart';
 import 'package:townloader/models/ig_asset.dart';
 import 'package:townloader/models/ig_post.dart';
 import 'package:townloader/models/ig_user.dart';
@@ -31,7 +33,7 @@ import 'package:townloader/ui/theme.dart';
 ///
 ///     STORE_SHOTS=1 flutter test test/store/store_screenshots_test.dart
 ///
-/// 결과는 `store/app_store/` 에 떨어진다. 사진은 picsum.photos(Unsplash 라이선스)에서
+/// 결과는 `store/app_store/screenshots/<언어>/` 에 떨어진다. 사진은 picsum.photos(Unsplash 라이선스)에서
 /// 받은 것이고, 계정·게시물은 모두 지어낸 예시다.
 void main() {
   final enabled = Platform.environment['STORE_SHOTS'] == '1';
@@ -41,87 +43,155 @@ void main() {
     await _loadFonts();
   });
 
-  testWidgets('01 링크 하나로 저장', (tester) async {
-    final env = await _Env.create(tester);
-    await env.pump(
-      const _StoreFrame(
-        title: '링크 하나로\n원본 화질 그대로',
-        subtitle: '사진·릴스·캐러셀을 가장 높은 화질로 저장해요',
-        screen: RootShell(),
-      ),
-    );
+  for (final copy in _copies) {
+    testWidgets('${copy.locale} 01 링크 하나로 저장', (tester) async {
+      final env = await _Env.create(tester, copy.appLocale);
+      await env.pump(
+        _StoreFrame(
+          title: copy.link.title,
+          subtitle: copy.link.subtitle,
+          titleSize: copy.titleSize,
+          screen: const RootShell(),
+        ),
+        locale: copy.appLocale,
+      );
 
-    final field = find.descendant(
-      of: find.byType(RootShell),
-      matching: find.byType(TextField),
-    );
-    await tester.enterText(field.first, 'instagram.com/p/DchLnq8E21N');
-    await tester.tap(find.byTooltip('가져오기'));
-    await _settle(tester);
+      final field = find.descendant(
+        of: find.byType(RootShell),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(field.first, 'instagram.com/p/DchLnq8E21N');
+      await tester.tap(find.byTooltip(copy.strings.fetch));
+      await _settle(tester);
 
-    await _capture(tester, '01_link.png');
-  }, skip: !enabled);
+      await _capture(tester, copy.locale, '01_link.png');
+    }, skip: !enabled);
 
-  testWidgets('02 공유하면 바로 다운로드', (tester) async {
-    final env = await _Env.create(tester);
+    testWidgets('${copy.locale} 02 공유하면 바로 다운로드', (tester) async {
+      final env = await _Env.create(tester, copy.appLocale);
 
-    // 공유로 들어온 링크가 큐에 들어가 한창 받는 중인 모습을 만든다.
-    env.downloads.enqueueAll(_sharedPosts, quality: QualityPreference.best);
-    final items = env.downloads.items;
-    for (var index = 0; index < items.length; index++) {
-      final item = items[index];
-      if (index < 2) {
-        item
-          ..status = DownloadStatus.running
-          ..totalBytes = 10000000
-          ..receivedBytes = index == 0 ? 6400000 : 2300000;
-      } else {
-        item
-          ..status = DownloadStatus.completed
-          ..savedLocation = const SavedLocation(
-            description: '사진 앱 · ${MediaFileSaver.albumName} 앨범',
-          );
+      // 공유로 들어온 링크가 큐에 들어가 한창 받는 중인 모습을 만든다.
+      env.downloads.enqueueAll(_sharedPosts, quality: QualityPreference.best);
+      final items = env.downloads.items;
+      for (var index = 0; index < items.length; index++) {
+        final item = items[index];
+        if (index < 2) {
+          item
+            ..status = DownloadStatus.running
+            ..totalBytes = 10000000
+            ..receivedBytes = index == 0 ? 6400000 : 2300000;
+        } else {
+          item
+            ..status = DownloadStatus.completed
+            ..savedLocation = SavedLocation(
+              description: S.current.savedToAlbum(MediaFileSaver.albumName),
+            );
+        }
       }
-    }
 
-    await env.pump(
-      const _StoreFrame(
-        title: '공유 버튼 한 번이면\n바로 다운로드',
-        subtitle: '인스타그램·Threads 공유 목록에서 Townloader를 고르세요',
-        screen: RootShell(),
-        badge: _ShareBadge(),
-      ),
-    );
-    await tester.tap(find.text('목록'));
-    await _settle(tester);
+      await env.pump(
+        _StoreFrame(
+          title: copy.share.title,
+          subtitle: copy.share.subtitle,
+          titleSize: copy.titleSize,
+          screen: const RootShell(),
+          badge: _ShareBadge(hint: copy.shareHint),
+        ),
+        locale: copy.appLocale,
+      );
+      await tester.tap(find.text(copy.strings.navDownloads));
+      await _settle(tester);
 
-    await _capture(tester, '02_share.png');
-  }, skip: !enabled);
+      await _capture(tester, copy.locale, '02_share.png');
+    }, skip: !enabled);
 
-  testWidgets('03 프로필 통째로 둘러보기', (tester) async {
-    final env = await _Env.create(tester);
-    await env.pump(
-      const _StoreFrame(
-        title: '계정을 통째로 보고\n원하는 것만 골라서',
-        subtitle: '게시물·릴스·스토리를 한눈에 둘러봐요',
-        screen: RootShell(),
-      ),
-    );
+    testWidgets('${copy.locale} 03 프로필 통째로 둘러보기', (tester) async {
+      final env = await _Env.create(tester, copy.appLocale);
+      await env.pump(
+        _StoreFrame(
+          title: copy.profile.title,
+          subtitle: copy.profile.subtitle,
+          titleSize: copy.titleSize,
+          screen: const RootShell(),
+        ),
+        locale: copy.appLocale,
+      );
 
-    await tester.tap(find.text('프로필'));
-    await tester.pump();
-    final field = find.descendant(
-      of: find.byType(ProfileScreen),
-      matching: find.byType(TextField),
-    );
-    await tester.enterText(field, _user.username);
-    await tester.testTextInput.receiveAction(TextInputAction.search);
-    FocusManager.instance.primaryFocus?.unfocus();
-    await _settle(tester);
+      await tester.tap(find.text(copy.strings.navProfile));
+      await tester.pump();
+      final field = find.descendant(
+        of: find.byType(ProfileScreen),
+        matching: find.byType(TextField),
+      );
+      await tester.enterText(field, _user.username);
+      await tester.testTextInput.receiveAction(TextInputAction.search);
+      FocusManager.instance.primaryFocus?.unfocus();
+      await _settle(tester);
 
-    await _capture(tester, '03_profile.png');
-  }, skip: !enabled);
+      await _capture(tester, copy.locale, '03_profile.png');
+    }, skip: !enabled);
+  }
 }
+
+// ── 문구 ────────────────────────────────────────────────────────────────────
+
+/// 언어마다 앱 화면도 그 언어로 띄우고, 위에 얹는 문구도 바꾼다.
+class _Copy {
+  const _Copy({
+    required this.locale,
+    required this.titleSize,
+    required this.link,
+    required this.share,
+    required this.profile,
+    required this.shareHint,
+  });
+
+  /// App Store Connect(fastlane) 의 언어 폴더 이름.
+  final String locale;
+
+  /// 앱 화면을 이 언어로 띄운다.
+  Locale get appLocale => Locale(locale.split('-').first);
+  S get strings => S(appLocale.languageCode != 'en');
+  final double titleSize;
+  final ({String title, String subtitle}) link;
+  final ({String title, String subtitle}) share;
+  final ({String title, String subtitle}) profile;
+  final String shareHint;
+}
+
+const _copies = [
+  _Copy(
+    locale: 'ko',
+    titleSize: 38,
+    link: (title: '링크 하나로\n원본 화질 그대로', subtitle: '사진·릴스·캐러셀을 가장 높은 화질로 저장해요'),
+    share: (
+      title: '공유 버튼 한 번이면\n바로 다운로드',
+      subtitle: '인스타그램·Threads 공유 목록에서 Townloader를 고르세요',
+    ),
+    profile: (
+      title: '계정을 통째로 보고\n원하는 것만 골라서',
+      subtitle: '게시물·릴스·스토리를 한눈에 둘러봐요',
+    ),
+    shareHint: '공유 목록에서 선택',
+  ),
+  _Copy(
+    locale: 'en-US',
+    titleSize: 34,
+    link: (
+      title: 'One link.\nOriginal quality.',
+      subtitle: 'Save photos, videos and carousels in full resolution',
+    ),
+    share: (
+      title: 'Share once.\nDownload instantly.',
+      subtitle: 'Pick Townloader in the share sheet',
+    ),
+    profile: (
+      title: 'Browse an account.\nKeep what you like.',
+      subtitle: 'See posts, reels and stories at a glance',
+    ),
+    shareHint: 'Pick it in the share sheet',
+  ),
+];
 
 // ── 캔버스 ────────────────────────────────────────────────────────────────────
 
@@ -143,11 +213,14 @@ class _Env {
   final DownloadService downloads;
   final _StoreRepository repository;
 
-  static Future<_Env> create(WidgetTester tester) async {
+  static Future<_Env> create(WidgetTester tester, Locale locale) async {
     tester.view.physicalSize = _canvas * _pixelRatio;
     tester.view.devicePixelRatio = _pixelRatio;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    // 데이터 계층 문구(S.current)는 기기 언어를 따르므로 함께 맞춘다.
+    tester.platformDispatcher.localeTestValue = locale;
+    addTearDown(tester.platformDispatcher.clearLocaleTestValue);
 
     await _primeImages(tester);
     final store = _MemoryStore();
@@ -158,7 +231,7 @@ class _Env {
     );
   }
 
-  Future<void> pump(Widget frame) async {
+  Future<void> pump(Widget frame, {required Locale locale}) async {
     final settings = _StoreSettings(_MemoryStore());
     await settings.load();
 
@@ -173,6 +246,13 @@ class _Env {
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: AppTheme.light(fontFallback: const [_korean]),
+          locale: locale,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('ko'), Locale('en')],
           // Material 이 없으면 프레임 문구에 디버그용 노란 밑줄이 그어진다.
           home: RepaintBoundary(
             key: _shotKey,
@@ -193,14 +273,14 @@ Future<void> _settle(WidgetTester tester) async {
   }
 }
 
-Future<void> _capture(WidgetTester tester, String name) async {
+Future<void> _capture(WidgetTester tester, String locale, String name) async {
   await tester.runAsync(() async {
     final boundary = tester.renderObject<RenderRepaintBoundary>(
       find.byKey(_shotKey),
     );
     final image = await boundary.toImage(pixelRatio: _pixelRatio);
     final data = await image.toByteData(format: ui.ImageByteFormat.png);
-    final file = File('store/app_store/$name');
+    final file = File('store/app_store/screenshots/$locale/$name');
     await file.parent.create(recursive: true);
     await file.writeAsBytes(data!.buffer.asUint8List());
   });
@@ -213,10 +293,12 @@ class _StoreFrame extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.screen,
+    this.titleSize = 38,
     this.badge,
   });
 
   final String title;
+  final double titleSize;
   final String subtitle;
   final Widget screen;
 
@@ -239,9 +321,9 @@ class _StoreFrame extends StatelessWidget {
           Text(
             title,
             textAlign: TextAlign.center,
-            style: const TextStyle(
+            style: TextStyle(
               fontFamily: _korean,
-              fontSize: 38,
+              fontSize: titleSize,
               fontWeight: FontWeight.w800,
               height: 1.24,
               letterSpacing: -1,
@@ -271,8 +353,7 @@ class _StoreFrame extends StatelessWidget {
                   padding: const EdgeInsets.only(bottom: 40),
                   child: FittedBox(child: _PhoneMockup(screen: screen)),
                 ),
-                if (badge case final badge?)
-                  Positioned(top: 486, child: badge),
+                if (badge case final badge?) Positioned(top: 486, child: badge),
               ],
             ),
           ),
@@ -375,7 +456,9 @@ class _StatusBar extends StatelessWidget {
 
 /// 공유 시트에서 Townloader 를 고르는 장면을 암시하는 카드.
 class _ShareBadge extends StatelessWidget {
-  const _ShareBadge();
+  const _ShareBadge({required this.hint});
+
+  final String hint;
 
   @override
   Widget build(BuildContext context) {
@@ -395,7 +478,7 @@ class _ShareBadge extends StatelessWidget {
             child: Image.network(_img('icon'), width: 48, height: 48),
           ),
           const SizedBox(width: 12),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -410,8 +493,8 @@ class _ShareBadge extends StatelessWidget {
               ),
               SizedBox(height: 2),
               Text(
-                '공유 목록에서 선택',
-                style: TextStyle(
+                hint,
+                style: const TextStyle(
                   fontFamily: _korean,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
@@ -438,7 +521,8 @@ Future<void> _primeImages(WidgetTester tester) async {
     for (final entity in Directory(_imageDir).listSync())
       if (entity is File && entity.path.endsWith('.jpg'))
         entity.uri.pathSegments.last.replaceAll('.jpg', ''): entity.path,
-    'icon': 'ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png',
+    'icon':
+        'ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png',
   };
 
   await tester.runAsync(() async {
@@ -494,7 +578,8 @@ class _StoreRepository extends IgRepository {
 
   @override
   Future<ResolveResult> resolve(IgLink link) async => ResolveResult(
-    title: '@${_user.username} · ${_carousel.kind.label}',
+    title:
+        '@${_user.username} · ${_carousel.kind.localizedLabel(S.current.isKo)}',
     posts: [_carousel],
     user: _user,
   );
@@ -569,12 +654,7 @@ IgItem _photo(String name) => IgItem(
   kind: AssetKind.photo,
   thumbnailUrl: _img(name),
   variants: [
-    IgAsset(
-      kind: AssetKind.photo,
-      url: _img(name),
-      width: 1080,
-      height: 1350,
-    ),
+    IgAsset(kind: AssetKind.photo, url: _img(name), width: 1080, height: 1350),
   ],
 );
 
@@ -595,12 +675,14 @@ IgItem _video(String name, double seconds) => IgItem(
   ],
 );
 
-final _carousel = IgPost(
+IgPost get _carousel => IgPost(
   pk: '3973939000000000001',
   code: 'DchLnq8E21N',
   kind: PostKind.carousel,
   user: _user,
-  caption: '돌로미티 트레킹 3일차. 구름이 걷히는 순간을 다섯 장에 담았어요.',
+  caption: S.current.isKo
+      ? '돌로미티 트레킹 3일차. 구름이 걷히는 순간을 다섯 장에 담았어요.'
+      : 'Day 3 in the Dolomites. Five frames of the clouds breaking.',
   takenAt: DateTime(2026, 9, 14),
   likeCount: 48200,
   commentCount: 612,
