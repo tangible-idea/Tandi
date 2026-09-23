@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -71,6 +72,13 @@ void main() {
           ChangeNotifierProvider.value(value: resolveController),
         ],
         child: MaterialApp(
+          locale: const Locale('ko'),
+          supportedLocales: const [Locale('ko'), Locale('en')],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: HomeScreen(
             onOpenProfile: (_) {},
             onOpenDownloads: () {},
@@ -81,7 +89,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // 초기 상태에서 링크 붙여넣기 안내가 표시된다.
-    expect(find.text('링크를 붙여넣어 주세요'), findsOneWidget);
+    expect(find.text('링크를 입력하세요'), findsOneWidget);
 
     // Threads 주소를 입력하고 가져오기를 누른다.
     await tester.enterText(
@@ -114,6 +122,13 @@ void main() {
           ChangeNotifierProvider.value(value: resolveController),
         ],
         child: MaterialApp(
+          locale: const Locale('ko'),
+          supportedLocales: const [Locale('ko'), Locale('en')],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: HomeScreen(
             onOpenProfile: (_) {},
             onOpenDownloads: () {},
@@ -177,6 +192,13 @@ void main() {
           ChangeNotifierProvider.value(value: resolveController),
         ],
         child: MaterialApp(
+          locale: const Locale('ko'),
+          supportedLocales: const [Locale('ko'), Locale('en')],
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: HomeScreen(
             onOpenProfile: (_) {},
             onOpenDownloads: () => downloadsOpened++,
@@ -207,5 +229,37 @@ void main() {
     expect(field.focusNode?.hasFocus, isFalse, reason: '키보드를 내려야 한다');
     expect(downloadsOpened, 1, reason: '목록 탭으로 한 번 넘어가야 한다');
     expect(downloadService.items, isNotEmpty);
+  });
+
+  testWidgets('영어 로케일에서는 미니멀한 영문 텍스트가 표시된다', (tester) async {
+    final store = _KeyedStore();
+    final settings = SettingsController(store);
+    await settings.load();
+
+    final repository = IgRepository(HikerClient(readApiKey: () => 'test'));
+    final resolveController = ResolveController(repository);
+    final downloadService = DownloadService(settings: store);
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: settings),
+          ChangeNotifierProvider.value(value: downloadService),
+          ChangeNotifierProvider.value(value: resolveController),
+        ],
+        child: MaterialApp(
+          locale: const Locale('en'),
+          home: HomeScreen(
+            onOpenProfile: (_) {},
+            onOpenDownloads: () {},
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Download'), findsOneWidget);
+    expect(find.text('Paste a link'), findsOneWidget);
+    expect(find.text('Instagram & Threads'), findsOneWidget);
   });
 }

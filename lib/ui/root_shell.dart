@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/strings.dart';
 import '../services/download_service.dart';
 import '../services/share_intake.dart';
 import 'downloads_screen.dart';
@@ -50,31 +51,32 @@ class _RootShellState extends State<RootShell> {
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     final activeDownloads = context.select<DownloadService, int>(
       (service) => service.activeCount,
     );
 
     final destinations = <_Destination>[
-      const _Destination(
+      _Destination(
         icon: Icons.download_outlined,
         selectedIcon: Icons.download,
-        label: '다운로드',
+        label: s.navDownload,
       ),
-      const _Destination(
+      _Destination(
         icon: Icons.person_outline,
         selectedIcon: Icons.person,
-        label: '프로필',
+        label: s.navProfile,
       ),
       _Destination(
         icon: Icons.list_alt_outlined,
         selectedIcon: Icons.list_alt,
-        label: '목록',
+        label: s.navDownloads,
         badgeCount: activeDownloads,
       ),
-      const _Destination(
+      _Destination(
         icon: Icons.settings_outlined,
         selectedIcon: Icons.settings,
-        label: '설정',
+        label: s.navSettings,
       ),
     ];
 

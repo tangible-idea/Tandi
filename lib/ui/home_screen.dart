@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../data/ig_repository.dart';
 import '../data/ig_url.dart';
-import '../models/media_source.dart';
+import '../l10n/strings.dart';
 import '../services/download_service.dart';
 import '../state/resolve_controller.dart';
 import '../state/settings_controller.dart';
@@ -41,8 +41,9 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('다운로드')),
+      appBar: AppBar(title: Text(s.homeTitle)),
       body: SafeArea(
         child: Column(
           children: [
@@ -56,6 +57,7 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _inputBar(BuildContext context) {
+    final s = S.of(context);
     final resolve = context.watch<ResolveController>();
 
     return Padding(
@@ -76,19 +78,19 @@ class HomeScreenState extends State<HomeScreen> {
                       textInputAction: TextInputAction.go,
                       onSubmitted: (_) => _submit(),
                       decoration: InputDecoration(
-                        hintText: 'instagram.com/... 또는 threads.net/...',
+                        hintText: s.linkHint,
                         prefixIcon: const Icon(Icons.link),
                         suffixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              tooltip: '붙여넣기',
+                              tooltip: s.paste,
                               icon: const Icon(Icons.content_paste),
                               onPressed: _pasteFromClipboard,
                             ),
                             if (_controller.text.isNotEmpty)
                               IconButton(
-                                tooltip: '지우기',
+                                tooltip: s.clear,
                                 icon: const Icon(Icons.close),
                                 onPressed: () {
                                   _controller.clear();
@@ -105,7 +107,7 @@ class HomeScreenState extends State<HomeScreen> {
                   const SizedBox(width: 8),
                   // 입력창과 같은 높이의 원형 아이콘 버튼 하나로 제출한다.
                   IconButton.filled(
-                    tooltip: '가져오기',
+                    tooltip: s.fetch,
                     // 테마의 IconButton 전경색(onSurface)이 filled 변형에도 덮여
                     // 검은 바탕에 검은 아이콘이 되므로 여기서 되돌린다.
                     style: IconButton.styleFrom(
@@ -128,7 +130,7 @@ class HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                '인스타그램 (게시물·릴스·스토리·하이라이트) 및 Threads 링크를 지원합니다.',
+                s.linkSubtitle,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -141,14 +143,11 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _resultArea(BuildContext context) {
+    final s = S.of(context);
     final resolve = context.watch<ResolveController>();
-    final settings = context.watch<SettingsController>();
 
     if (resolve.isLoading) {
-      final isThreads = resolve.link?.source == MediaSource.threads;
-      return LoadingView(
-        label: isThreads ? 'Threads에서 정보를 가져오는 중…' : '미디어 정보를 가져오는 중…',
-      );
+      return LoadingView(label: s.fetching);
     }
 
     final error = resolve.error;
@@ -163,11 +162,9 @@ class HomeScreenState extends State<HomeScreen> {
         icon: username != null
             ? Icons.account_circle_outlined
             : Icons.error_outline,
-        title: username != null ? '@$username 프로필 링크입니다' : '가져오지 못했습니다',
-        description: username != null
-            ? '프로필의 게시물을 한꺼번에 보려면 프로필 화면에서 여세요.'
-            : error,
-        actionLabel: username != null ? '@$username 열기' : null,
+        title: username != null ? s.profileLinkNotice(username) : s.failedToLoad,
+        description: username != null ? null : error,
+        actionLabel: username != null ? s.openProfile(username) : null,
         onAction: username != null
             ? () => widget.onOpenProfile(username)
             : null,
@@ -176,12 +173,10 @@ class HomeScreenState extends State<HomeScreen> {
 
     final result = resolve.result;
     if (result == null) {
-      return const MessageView(
+      return MessageView(
         icon: Icons.download_for_offline_outlined,
-        title: '링크를 붙여넣어 주세요',
-        description:
-            '인스타그램 앱이나 Threads에서 복사한 주소를 위에 붙여넣으면\n'
-            '사진과 동영상을 원본 화질로 내려받습니다.',
+        title: s.emptyHomeTitle,
+        description: s.emptyHomeDesc,
       );
     }
 
@@ -205,7 +200,7 @@ class HomeScreenState extends State<HomeScreen> {
                   TextButton.icon(
                     onPressed: () => _downloadAll(result),
                     icon: const Icon(Icons.download),
-                    label: const Text('전체 받기'),
+                    label: Text(s.downloadAll),
                   ),
               ],
             ),
@@ -268,7 +263,7 @@ class HomeScreenState extends State<HomeScreen> {
       result.posts,
       quality: settings.quality,
     );
-    _toast('$count개 파일을 다운로드에 추가했습니다.');
+    _toast(S.of(context).downloadStarted(count));
     // 큐에 실제로 들어간 게 있을 때만 넘어간다.
     if (count > 0) widget.onOpenDownloads();
   }

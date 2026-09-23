@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/strings.dart';
 import '../services/download_service.dart';
-import '../services/file_saver.dart';
 import 'format.dart';
 import 'widgets/network_thumb.dart';
 import 'widgets/state_views.dart';
@@ -14,28 +14,29 @@ class DownloadsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     final downloads = context.watch<DownloadService>();
     final items = downloads.items;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('다운로드 목록'),
+        title: Text(s.downloadsTitle),
         actions: [
           if (items.any((item) => item.status.isFinished))
             TextButton.icon(
               onPressed: downloads.clearFinished,
               icon: const Icon(Icons.cleaning_services_outlined, size: 18),
-              label: const Text('완료 항목 정리'),
+              label: Text(s.clearFinished),
             ),
           const SizedBox(width: 8),
         ],
       ),
       body: SafeArea(
         child: items.isEmpty
-            ? const MessageView(
+            ? MessageView(
                 icon: Icons.download_done_outlined,
-                title: '아직 받은 항목이 없습니다',
-                description: '다운로드 탭에서 링크를 넣거나\n프로필에서 항목을 눌러 담아 보세요.',
+                title: s.noDownloadsTitle,
+                description: s.noDownloadsDesc,
               )
             : Center(
                 child: ConstrainedBox(
@@ -116,12 +117,13 @@ class _DownloadTile extends StatelessWidget {
   }
 
   Widget _statusLine(BuildContext context) {
+    final s = S.of(context);
     final theme = Theme.of(context);
 
     switch (item.status) {
       case DownloadStatus.queued:
         return Text(
-          '대기 중',
+          s.queued,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -162,7 +164,7 @@ class _DownloadTile extends StatelessWidget {
             const SizedBox(width: 5),
             Expanded(
               child: Text(
-                location?.description ?? '완료',
+                location?.description ?? (s.isKo ? '완료' : 'Done'),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.bodySmall?.copyWith(
@@ -184,7 +186,7 @@ class _DownloadTile extends StatelessWidget {
             const SizedBox(width: 5),
             Expanded(
               child: Text(
-                item.errorMessage ?? '실패',
+                item.errorMessage ?? s.failed,
                 maxLines: 2,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.error,
@@ -196,7 +198,7 @@ class _DownloadTile extends StatelessWidget {
 
       case DownloadStatus.canceled:
         return Text(
-          '취소됨',
+          s.cancel,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -205,9 +207,10 @@ class _DownloadTile extends StatelessWidget {
   }
 
   Widget _trailing(BuildContext context, DownloadService downloads) {
+    final s = S.of(context);
     if (item.isActive) {
       return IconButton(
-        tooltip: '취소',
+        tooltip: s.cancel,
         icon: const Icon(Icons.close),
         onPressed: () => downloads.cancel(item.id),
       );
@@ -218,7 +221,7 @@ class _DownloadTile extends StatelessWidget {
       // 모바일에서 앨범에 넣은 경우에는 복사할 경로가 없다.
       if (path == null) return const SizedBox(width: 8);
       return IconButton(
-        tooltip: MediaFileSaver.isDesktop ? '경로 복사' : '경로 복사',
+        tooltip: s.openFolder,
         icon: const Icon(Icons.folder_open_outlined),
         onPressed: () async {
           await Clipboard.setData(ClipboardData(text: path));
@@ -226,8 +229,8 @@ class _DownloadTile extends StatelessWidget {
             ScaffoldMessenger.of(context)
               ..hideCurrentSnackBar()
               ..showSnackBar(
-                const SnackBar(
-                  content: Text('저장 경로를 복사했습니다.'),
+                SnackBar(
+                  content: Text(s.isKo ? '경로 복사됨' : 'Path copied'),
                   behavior: SnackBarBehavior.floating,
                 ),
               );
@@ -237,7 +240,7 @@ class _DownloadTile extends StatelessWidget {
     }
 
     return IconButton(
-      tooltip: '다시 시도',
+      tooltip: s.retry,
       icon: const Icon(Icons.refresh),
       onPressed: () => downloads.retry(item.id),
     );

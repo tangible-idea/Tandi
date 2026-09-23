@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../../l10n/strings.dart';
 import '../../models/ig_post.dart';
 import '../../services/download_service.dart';
 import '../../state/settings_controller.dart';
@@ -100,8 +101,8 @@ class PostCard extends StatelessWidget {
                 ),
                 Text(
                   [
-                    post.kind.label,
-                    if (post.items.length > 1) '${post.items.length}개 항목',
+                    post.kind.localizedLabel(S.of(context).isKo),
+                    if (post.items.length > 1) S.of(context).itemsCount(post.items.length),
                     Fmt.date(post.takenAt),
                   ].where((text) => text.isNotEmpty).join(' · '),
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -113,14 +114,14 @@ class PostCard extends StatelessWidget {
           ),
           if (post.permalink != null)
             IconButton(
-              tooltip: '링크 복사',
+              tooltip: S.of(context).copyLink,
               icon: const Icon(Icons.link, size: 20),
               onPressed: () async {
                 await Clipboard.setData(
                   ClipboardData(text: post.permalink!),
                 );
                 if (context.mounted) {
-                  _toast(context, '링크를 복사했습니다.');
+                  _toast(context, S.of(context).linkCopied);
                 }
               },
             ),
@@ -237,6 +238,7 @@ class PostCard extends StatelessWidget {
   }
 
   Widget _actions(BuildContext context) {
+    final s = S.of(context);
     final hasVariantChoice = post.items.any(
       (item) => item.variants.length > 1,
     );
@@ -251,18 +253,20 @@ class PostCard extends StatelessWidget {
                 post,
                 quality: settings.quality,
               );
-              _toast(context, '$count개 파일을 다운로드에 추가했습니다.');
+              _toast(context, s.downloadStarted(count));
             },
             icon: const Icon(Icons.download),
             label: Text(
-              post.items.length > 1 ? '전체 ${post.items.length}개 받기' : '다운로드',
+              post.items.length > 1
+                  ? '${s.downloadAll} (${post.items.length})'
+                  : s.downloadBtn,
             ),
           ),
         ),
         if (hasVariantChoice) ...[
           const SizedBox(width: 8),
           IconButton.outlined(
-            tooltip: '화질 선택',
+            tooltip: s.selectQuality,
             icon: const Icon(Icons.tune),
             onPressed: () => DownloadOptionsSheet.show(context, post),
           ),

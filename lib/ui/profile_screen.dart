@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../l10n/strings.dart';
 import '../models/ig_post.dart';
 import '../models/ig_user.dart';
 import '../services/download_service.dart';
@@ -59,11 +60,12 @@ class ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     final settings = context.watch<SettingsController>();
     final controller = context.watch<ProfileController>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('프로필')),
+      appBar: AppBar(title: Text(s.profileTitle)),
       body: SafeArea(
         child: Column(
           children: [
@@ -73,8 +75,8 @@ class ProfileScreenState extends State<ProfileScreen> {
               child: settings.isLoaded && !settings.hasApiKey
                   ? MessageView(
                       icon: Icons.key_outlined,
-                      title: '인스타그램 조회를 쓸 수 없습니다',
-                      description: '이 빌드에는 인스타그램 조회용 키가 들어 있지 않습니다.',
+                      title: s.privateAccount,
+                      description: null,
                     )
                   : _body(context, controller),
             ),
@@ -85,6 +87,7 @@ class ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _searchBar(BuildContext context) {
+    final s = S.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
       child: Center(
@@ -97,14 +100,14 @@ class ProfileScreenState extends State<ProfileScreen> {
                   controller: _controller,
                   textInputAction: TextInputAction.search,
                   onSubmitted: (_) => _search(),
-                  decoration: const InputDecoration(
-                    hintText: '계정명 입력 (예: nasa)',
-                    prefixIcon: Icon(Icons.alternate_email),
+                  decoration: InputDecoration(
+                    hintText: s.usernameHint,
+                    prefixIcon: const Icon(Icons.alternate_email),
                   ),
                 ),
               ),
               const SizedBox(width: 12),
-              FilledButton(onPressed: _search, child: const Text('열기')),
+              FilledButton(onPressed: _search, child: Text(s.open)),
             ],
           ),
         ),
@@ -113,8 +116,9 @@ class ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _body(BuildContext context, ProfileController controller) {
+    final s = S.of(context);
     if (controller.isLoading && controller.user == null) {
-      return const LoadingView(label: '계정 정보를 가져오는 중…');
+      return LoadingView(label: s.fetching);
     }
 
     final error = controller.error;
@@ -122,17 +126,17 @@ class ProfileScreenState extends State<ProfileScreen> {
       return MessageView(
         isError: true,
         icon: Icons.error_outline,
-        title: '불러오지 못했습니다',
+        title: s.failedToLoad,
         description: error,
       );
     }
 
     final user = controller.user;
     if (user == null) {
-      return const MessageView(
+      return MessageView(
         icon: Icons.person_search_outlined,
-        title: '계정을 열어 보세요',
-        description: '공개 계정의 게시물·릴스·스토리를 목록으로 보고\n원하는 항목만 골라 받을 수 있습니다.',
+        title: s.searchPromptTitle,
+        description: s.searchPromptDesc,
       );
     }
 
@@ -147,10 +151,8 @@ class ProfileScreenState extends State<ProfileScreen> {
             hasScrollBody: false,
             child: MessageView(
               icon: Icons.inbox_outlined,
-              title: '${controller.feed.label}이(가) 없습니다',
-              description: user.isPrivate
-                  ? '비공개 계정이라 게시물을 가져올 수 없습니다.'
-                  : '이 탭에 표시할 항목이 없습니다.',
+              title: controller.feed.localizedLabel(s.isKo),
+              description: user.isPrivate ? s.privateAccount : null,
             ),
           )
         else
@@ -257,7 +259,10 @@ class ProfileScreenState extends State<ProfileScreen> {
                 child: SegmentedButton<ProfileFeed>(
                   segments: [
                     for (final feed in ProfileFeed.values)
-                      ButtonSegment(value: feed, label: Text(feed.label)),
+                      ButtonSegment(
+                        value: feed,
+                        label: Text(feed.localizedLabel(S.of(context).isKo)),
+                      ),
                   ],
                   selected: {controller.feed},
                   showSelectedIcon: false,
@@ -285,7 +290,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                     ..hideCurrentSnackBar()
                     ..showSnackBar(
                       SnackBar(
-                        content: Text('$count개 파일을 다운로드에 추가했습니다.'),
+                        content: Text(S.of(context).downloadStarted(count)),
                         behavior: SnackBarBehavior.floating,
                       ),
                     );

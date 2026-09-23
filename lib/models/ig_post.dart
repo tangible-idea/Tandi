@@ -13,6 +13,16 @@ extension PostKindLabel on PostKind {
     PostKind.carousel => '캐러셀',
     PostKind.story => '스토리',
   };
+
+  String localizedLabel([bool isKo = true]) => isKo
+      ? label
+      : switch (this) {
+          PostKind.photo => 'Photo',
+          PostKind.video => 'Video',
+          PostKind.reel => 'Reel',
+          PostKind.carousel => 'Carousel',
+          PostKind.story => 'Story',
+        };
 }
 
 /// 게시물 안의 항목 하나. 캐러셀이면 슬라이드 한 장, 그 외에는 항목이 하나뿐이다.

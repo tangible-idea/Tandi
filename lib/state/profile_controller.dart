@@ -14,6 +14,14 @@ extension ProfileFeedLabel on ProfileFeed {
     ProfileFeed.reels => '릴스',
     ProfileFeed.stories => '스토리',
   };
+
+  String localizedLabel([bool isKo = true]) => isKo
+      ? label
+      : switch (this) {
+          ProfileFeed.posts => 'Posts',
+          ProfileFeed.reels => 'Reels',
+          ProfileFeed.stories => 'Stories',
+        };
 }
 
 /// 계정 하나의 미디어를 페이지 단위로 불러오는 상태.
