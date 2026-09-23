@@ -25,7 +25,7 @@ import 'package:townloader/ui/profile_screen.dart';
 import 'package:townloader/ui/root_shell.dart';
 import 'package:townloader/ui/theme.dart';
 
-/// App Store 업로드용 스크린샷(6.9" iPhone, 1320×2868)을 만든다.
+/// App Store 업로드용 스크린샷(6.7" iPhone, 1284×2778)을 만든다.
 ///
 /// 실제 앱 화면을 폰 목업에 넣고 위에 문구를 얹는다. 평소 테스트에서는 건너뛴다.
 ///
@@ -125,8 +125,8 @@ void main() {
 
 // ── 캔버스 ────────────────────────────────────────────────────────────────────
 
-/// App Store 6.9" 규격. 논리 크기 440×956 을 3배로 찍는다.
-const _canvas = Size(440, 956);
+/// App Store Connect 가 받는 6.7" 규격(1284×2778). 논리 크기 428×926 을 3배로 찍는다.
+const _canvas = Size(428, 926);
 const _pixelRatio = 3.0;
 
 /// 목업 안 화면은 iPhone 16 Pro 논리 크기.
@@ -272,7 +272,7 @@ class _StoreFrame extends StatelessWidget {
                   child: FittedBox(child: _PhoneMockup(screen: screen)),
                 ),
                 if (badge case final badge?)
-                  Positioned(top: 500, child: badge),
+                  Positioned(top: 486, child: badge),
               ],
             ),
           ),
