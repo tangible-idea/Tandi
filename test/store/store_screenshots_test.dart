@@ -545,8 +545,8 @@ class _MemoryStore extends SettingsStore {
 
 final _user = IgUser(
   pk: '4821001',
-  username: 'wander.daily',
-  fullName: 'Wander Daily',
+  username: 'marks.photo',
+  fullName: "Mark's Photo",
   profilePicUrl: _img('avatar'),
   isVerified: true,
   mediaCount: 1284,
