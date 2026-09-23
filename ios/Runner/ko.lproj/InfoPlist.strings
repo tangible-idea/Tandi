@@ -1,0 +1,5 @@
+/* 사진 앱에 추가만 할 때 */
+"NSPhotoLibraryAddUsageDescription" = "내려받은 사진과 동영상을 사진 앱에 저장합니다.";
+
+/* 앨범을 만들려면 전체 접근이 필요하다 */
+"NSPhotoLibraryUsageDescription" = "사진 앱에 Townloader 앨범을 만들고 내려받은 파일을 저장합니다. 기존 사진은 읽지 않습니다.";

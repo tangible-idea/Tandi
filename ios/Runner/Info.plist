@@ -42,9 +42,9 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>다운로드한 사진과 동영상을 사진 앱에 저장하기 위해 사용합니다.</string>
+	<string>Townloader saves the photos and videos you download to your Photos library.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>다운로드한 사진과 동영상을 사진 앱에 저장하기 위해 사용합니다.</string>
+	<string>Townloader needs access to create a Townloader album in Photos and save your downloads there. It never reads your existing photos.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
