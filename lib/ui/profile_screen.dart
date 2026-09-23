@@ -13,13 +13,7 @@ import 'widgets/state_views.dart';
 
 /// 계정 하나의 게시물·릴스·스토리를 훑어보고 골라 받는 화면.
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({
-    super.key,
-    required this.onOpenSettings,
-    required this.onOpenDownloads,
-  });
-
-  final VoidCallback onOpenSettings;
+  const ProfileScreen({super.key, required this.onOpenDownloads});
 
   /// 큐에 파일을 넣은 뒤 진행 상황을 보여 주기 위해 목록 탭으로 넘어간다.
   final VoidCallback onOpenDownloads;
@@ -79,10 +73,8 @@ class ProfileScreenState extends State<ProfileScreen> {
               child: settings.isLoaded && !settings.hasApiKey
                   ? MessageView(
                       icon: Icons.key_outlined,
-                      title: '액세스 키가 필요합니다',
-                      description: '설정에서 액세스 키를 입력해 주세요.',
-                      actionLabel: '설정 열기',
-                      onAction: widget.onOpenSettings,
+                      title: '인스타그램 조회를 쓸 수 없습니다',
+                      description: '이 빌드에는 인스타그램 조회용 키가 들어 있지 않습니다.',
                     )
                   : _body(context, controller),
             ),
@@ -132,8 +124,6 @@ class ProfileScreenState extends State<ProfileScreen> {
         icon: Icons.error_outline,
         title: '불러오지 못했습니다',
         description: error,
-        actionLabel: controller.needsApiKey ? '설정 열기' : null,
-        onAction: controller.needsApiKey ? widget.onOpenSettings : null,
       );
     }
 
@@ -151,10 +141,7 @@ class ProfileScreenState extends State<ProfileScreen> {
       slivers: [
         SliverToBoxAdapter(child: _profileHeader(context, user, controller)),
         if (controller.isLoading)
-          const SliverFillRemaining(
-            hasScrollBody: false,
-            child: LoadingView(),
-          )
+          const SliverFillRemaining(hasScrollBody: false, child: LoadingView())
         else if (controller.posts.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,
@@ -170,12 +157,11 @@ class ProfileScreenState extends State<ProfileScreen> {
           SliverPadding(
             padding: const EdgeInsets.all(16),
             sliver: SliverGrid.builder(
-              gridDelegate:
-                  const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 180,
-                    mainAxisSpacing: 8,
-                    crossAxisSpacing: 8,
-                  ),
+              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                maxCrossAxisExtent: 180,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+              ),
               itemCount: controller.posts.length,
               itemBuilder: (context, index) =>
                   _gridTile(context, controller.posts[index]),
@@ -364,10 +350,7 @@ class ProfileScreenState extends State<ProfileScreen> {
               right: 0,
               bottom: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 6,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.bottomCenter,

@@ -5,7 +5,7 @@ import '../services/file_saver.dart';
 import '../services/settings_store.dart';
 import '../state/settings_controller.dart';
 
-/// API 키와 다운로드 동작을 설정하는 화면.
+/// 다운로드 동작을 설정하는 화면.
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
@@ -14,24 +14,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  late final TextEditingController _keyController;
-  bool _obscured = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _keyController = TextEditingController(
-      // 심어 둔 키가 아니라 사용자가 직접 넣은 키만 보여 준다.
-      text: context.read<SettingsController>().userApiKey ?? '',
-    );
-  }
-
-  @override
-  void dispose() {
-    _keyController.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final settings = context.watch<SettingsController>();
@@ -46,108 +28,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _sectionTitle(context, '인스타그램 API'),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        TextField(
-                          controller: _keyController,
-                          obscureText: _obscured,
-                          decoration: InputDecoration(
-                            labelText: '액세스 키',
-                            hintText: '액세스 키를 입력해 주세요',
-                            prefixIcon: const Icon(Icons.key_outlined),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscured
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                              ),
-                              onPressed: () =>
-                                  setState(() => _obscured = !_obscured),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            FilledButton(
-                              onPressed: () async {
-                                final saved = await settings.setApiKey(
-                                  _keyController.text,
-                                );
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context)
-                                  ..hideCurrentSnackBar()
-                                  ..showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        saved
-                                            ? '키를 저장했습니다.'
-                                            : '키체인에 저장하지 못했습니다. 이번 실행 동안만 적용됩니다.',
-                                      ),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                              },
-                              child: const Text('저장'),
-                            ),
-                            const Spacer(),
-                            if (settings.hasApiKey)
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.check_circle,
-                                    size: 16,
-                                    color: theme.colorScheme.primary,
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    settings.usesBundledKey
-                                        ? '기본 키 사용 중'
-                                        : '설정됨',
-                                    style: theme.textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        if (settings.usesBundledKey)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Text(
-                              '이 빌드에 포함된 기본 키로 동작 중입니다. 위에 직접 키를 넣으면 그 키가 '
-                              '대신 쓰입니다.',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                          ),
-                        Text(
-                          switch (settings.backend) {
-                            SettingsBackend.keychain =>
-                              '키는 기기 키체인에 안전하게 보관됩니다.',
-                            SettingsBackend.containerFile =>
-                              '이 빌드는 키체인을 쓸 수 없어(개발자 서명 없음) 키를 앱 컨테이너 안의 '
-                                  '파일에 저장합니다. 다른 앱은 읽을 수 없지만 키체인만큼 보호되지는 '
-                                  '않습니다.',
-                          },
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: settings.backend == SettingsBackend.keychain
-                                ? theme.colorScheme.onSurfaceVariant
-                                : theme.colorScheme.error,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-
-                const SizedBox(height: 24),
                 _sectionTitle(context, '다운로드'),
                 Card(
                   child: Column(
@@ -178,9 +58,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           value: settings.saveToGallery,
                           onChanged: settings.setSaveToGallery,
                           title: const Text('사진 앱에 저장'),
-                          subtitle: const Text(
-                            '끄면 앱 문서 폴더에만 저장됩니다.',
-                          ),
+                          subtitle: const Text('끄면 앱 문서 폴더에만 저장됩니다.'),
                         ),
                       ],
                     ],
@@ -202,7 +80,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
                 _sectionTitle(context, '알아두기'),
                 Card(
                   child: Padding(

@@ -44,10 +44,7 @@ class HikerClient {
   Future<dynamic> get(String path, {Map<String, dynamic>? query}) async {
     final key = readApiKey();
     if (key == null || key.isEmpty) {
-      throw HikerException(
-        '액세스 키가 설정되지 않았습니다. 설정 화면에서 키를 입력해 주세요.',
-        statusCode: 401,
-      );
+      throw HikerException('이 빌드에는 인스타그램 조회용 키가 들어 있지 않습니다.', statusCode: 401);
     }
 
     final uri = Uri.https(host, path, _stringifyQuery(query));
@@ -55,7 +52,10 @@ class HikerClient {
     final http.Response response;
     try {
       response = await _http
-          .get(uri, headers: {'x-access-key': key, 'accept': 'application/json'})
+          .get(
+            uri,
+            headers: {'x-access-key': key, 'accept': 'application/json'},
+          )
           .timeout(timeout);
     } on TimeoutException {
       throw HikerException('요청 시간이 초과되었습니다. 잠시 후 다시 시도해 주세요.');

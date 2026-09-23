@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import '../data/ig_repository.dart';
 import '../data/ig_url.dart';
 import '../models/media_source.dart';
 import '../services/download_service.dart';
@@ -14,22 +15,20 @@ import 'widgets/state_views.dart';
 class HomeScreen extends StatefulWidget {
   const HomeScreen({
     super.key,
-    required this.onOpenSettings,
     required this.onOpenProfile,
     required this.onOpenDownloads,
   });
 
-  final VoidCallback onOpenSettings;
   final void Function(String username) onOpenProfile;
 
   /// 큐에 파일을 넣은 뒤 진행 상황을 보여 주기 위해 목록 탭으로 넘어간다.
   final VoidCallback onOpenDownloads;
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  State<HomeScreen> createState() => HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> {
   final _controller = TextEditingController();
   final _focusNode = FocusNode();
 
@@ -49,9 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             _inputBar(context),
             const Divider(height: 1),
-            Expanded(
-              child: _resultArea(context),
-            ),
+            Expanded(child: _resultArea(context)),
           ],
         ),
       ),
@@ -105,16 +102,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       onChanged: (_) => setState(() {}),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  FilledButton(
+                  const SizedBox(width: 8),
+                  // 입력창과 같은 높이의 원형 아이콘 버튼 하나로 제출한다.
+                  IconButton.filled(
+                    tooltip: '가져오기',
+                    // 테마의 IconButton 전경색(onSurface)이 filled 변형에도 덮여
+                    // 검은 바탕에 검은 아이콘이 되므로 여기서 되돌린다.
+                    style: IconButton.styleFrom(
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                    constraints: const BoxConstraints.tightFor(
+                      width: 48,
+                      height: 48,
+                    ),
                     onPressed: resolve.isLoading ? null : _submit,
-                    child: resolve.isLoading
+                    icon: resolve.isLoading
                         ? const SizedBox(
                             width: 18,
                             height: 18,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Text('가져오기'),
+                        : const Icon(Icons.arrow_forward),
                   ),
                 ],
               ),
@@ -159,12 +167,10 @@ class _HomeScreenState extends State<HomeScreen> {
         description: username != null
             ? '프로필의 게시물을 한꺼번에 보려면 프로필 화면에서 여세요.'
             : error,
-        actionLabel: username != null
-            ? '@$username 열기'
-            : (resolve.needsApiKey ? '설정 열기' : null),
+        actionLabel: username != null ? '@$username 열기' : null,
         onAction: username != null
             ? () => widget.onOpenProfile(username)
-            : (resolve.needsApiKey ? widget.onOpenSettings : null),
+            : null,
       );
     }
 
@@ -173,7 +179,8 @@ class _HomeScreenState extends State<HomeScreen> {
       return const MessageView(
         icon: Icons.download_for_offline_outlined,
         title: '링크를 붙여넣어 주세요',
-        description: '인스타그램 앱이나 Threads에서 복사한 주소를 위에 붙여넣으면\n'
+        description:
+            '인스타그램 앱이나 Threads에서 복사한 주소를 위에 붙여넣으면\n'
             '사진과 동영상을 원본 화질로 내려받습니다.',
       );
     }
@@ -196,21 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 if (result.posts.length > 1)
                   TextButton.icon(
-                    onPressed: () {
-                      // 입력창에 포커스가 남아 있으면 키보드가 목록을 가리므로 먼저 내린다.
-                      FocusScope.of(context).unfocus();
-
-                      final settings = context.read<SettingsController>();
-                      final count = context
-                          .read<DownloadService>()
-                          .enqueueAll(
-                            result.posts,
-                            quality: settings.quality,
-                          );
-                      _toast('$count개 파일을 다운로드에 추가했습니다.');
-                      // 큐에 실제로 들어간 게 있을 때만 넘어간다.
-                      if (count > 0) widget.onOpenDownloads();
-                    },
+                    onPressed: () => _downloadAll(result),
                     icon: const Icon(Icons.download),
                     label: const Text('전체 받기'),
                   ),
@@ -237,7 +230,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (mounted) _submit();
   }
 
-  void _submit() {
+  /// 다른 앱에서 공유한 링크를 받아 곧바로 해석하고 전부 다운로드에 넣는다.
+  void handleSharedLink(String link) {
+    _controller.text = link;
+    setState(() {});
+    _submit(autoDownload: true);
+  }
+
+  /// [autoDownload] 면 해석이 끝나는 대로 결과 전체를 다운로드 큐에 넣는다.
+  Future<void> _submit({bool autoDownload = false}) async {
     final input = _controller.text.trim();
     if (input.isEmpty) return;
 
@@ -249,7 +250,27 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     _focusNode.unfocus();
-    context.read<ResolveController>().resolve(input);
+    final resolve = context.read<ResolveController>();
+    await resolve.resolve(input);
+
+    // 실패하면 오류 화면이 그대로 남아 이유를 보여 준다.
+    final result = resolve.result;
+    if (!autoDownload || !mounted || result == null) return;
+    _downloadAll(result);
+  }
+
+  void _downloadAll(ResolveResult result) {
+    // 입력창에 포커스가 남아 있으면 키보드가 목록을 가리므로 먼저 내린다.
+    FocusScope.of(context).unfocus();
+
+    final settings = context.read<SettingsController>();
+    final count = context.read<DownloadService>().enqueueAll(
+      result.posts,
+      quality: settings.quality,
+    );
+    _toast('$count개 파일을 다운로드에 추가했습니다.');
+    // 큐에 실제로 들어간 게 있을 때만 넘어간다.
+    if (count > 0) widget.onOpenDownloads();
   }
 
   void _toast(String message) {

@@ -27,6 +27,12 @@ void main() {
   setUpAll(() async {
     // 기본 테스트 폰트는 한글이 네모로 나오므로 시스템 폰트를 직접 올린다.
     await _loadFamily(_fontFamily, _fontPaths);
+    // 앱 서체(Urbanist)도 올려 실제 기기처럼 영문은 Urbanist, 한글은 폴백으로 그린다.
+    for (final weight in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
+      await _loadFamily(AppTheme.fontFamily, [
+        'assets/fonts/Urbanist-$weight.ttf',
+      ]);
+    }
 
     // 아이콘도 폰트라서 따로 올리지 않으면 전부 빈 네모로 그려진다.
     final flutterRoot =
@@ -144,7 +150,10 @@ Widget _app(Widget child, {bool dark = false}) {
   final store = _MemoryStore();
   final settings = SettingsController(store)..load();
   final repository = IgRepository(HikerClient(readApiKey: () => 'demo-key'));
-  final base = dark ? AppTheme.dark() : AppTheme.light();
+  // 테스트 환경은 글리프 단위 시스템 폴백이 없어 한글 폰트를 폴백으로 직접 건다.
+  final base = dark
+      ? AppTheme.dark(fontFallback: [_fontFamily])
+      : AppTheme.light(fontFallback: [_fontFamily]);
 
   return MultiProvider(
     providers: [
@@ -155,16 +164,7 @@ Widget _app(Widget child, {bool dark = false}) {
     ],
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: base.copyWith(
-        textTheme: base.textTheme.apply(fontFamily: _fontFamily),
-        primaryTextTheme: base.primaryTextTheme.apply(fontFamily: _fontFamily),
-        // 앱바 제목은 테마가 폰트를 명시해 두어 textTheme.apply 로는 바뀌지 않는다.
-        appBarTheme: base.appBarTheme.copyWith(
-          titleTextStyle: base.appBarTheme.titleTextStyle?.copyWith(
-            fontFamily: _fontFamily,
-          ),
-        ),
-      ),
+      theme: base,
       home: child,
     ),
   );

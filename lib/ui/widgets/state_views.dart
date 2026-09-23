@@ -28,11 +28,11 @@ class MessageView extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420),
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 44, color: color),
+              Icon(icon, size: 36, color: color),
               const SizedBox(height: 16),
               Text(
                 title,
@@ -52,7 +52,7 @@ class MessageView extends StatelessWidget {
                 ),
               ],
               if (actionLabel != null && onAction != null) ...[
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
                 FilledButton.tonal(
                   onPressed: onAction,
                   child: Text(actionLabel!),

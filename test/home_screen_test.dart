@@ -72,7 +72,6 @@ void main() {
         ],
         child: MaterialApp(
           home: HomeScreen(
-            onOpenSettings: () {},
             onOpenProfile: (_) {},
             onOpenDownloads: () {},
           ),
@@ -89,7 +88,7 @@ void main() {
       find.byType(TextField),
       'https://www.threads.com/@testuser/post/C1234567890',
     );
-    await tester.tap(find.text('가져오기'));
+    await tester.tap(find.byTooltip('가져오기'));
     await tester.pump();
     await tester.pumpAndSettle();
 
@@ -97,7 +96,7 @@ void main() {
     expect(find.text('@testuser · Threads · 사진'), findsOneWidget);
   });
 
-  testWidgets('API 키가 없을 때 인스타그램 링크를 조회하면 액세스 키 설정 안내를 표시한다', (tester) async {
+  testWidgets('심어 둔 키가 없는 빌드에서 인스타그램 링크를 조회하면 이유를 안내한다', (tester) async {
     final store = _NoKeyStore();
     final settings = SettingsController(store);
     await settings.load();
@@ -106,8 +105,6 @@ void main() {
     final repository = IgRepository(hikerClient);
     final resolveController = ResolveController(repository);
     final downloadService = DownloadService(settings: store);
-
-    var settingsOpened = false;
 
     await tester.pumpWidget(
       MultiProvider(
@@ -118,7 +115,6 @@ void main() {
         ],
         child: MaterialApp(
           home: HomeScreen(
-            onOpenSettings: () => settingsOpened = true,
             onOpenProfile: (_) {},
             onOpenDownloads: () {},
           ),
@@ -132,17 +128,14 @@ void main() {
       find.byType(TextField),
       'https://www.instagram.com/reel/C1234567890/',
     );
-    await tester.tap(find.text('가져오기'));
+    await tester.tap(find.byTooltip('가져오기'));
     await tester.pump();
     await tester.pumpAndSettle();
 
-    // 오류 안내와 설정 열기 버튼이 표시된다.
+    // 키는 사용자가 바꿀 수 없으므로 설정으로 보내지 않고 이유만 알린다.
     expect(find.text('가져오지 못했습니다'), findsOneWidget);
-    expect(find.textContaining('액세스 키가 설정되지 않았습니다'), findsOneWidget);
-    expect(find.text('설정 열기'), findsOneWidget);
-
-    await tester.tap(find.text('설정 열기'));
-    expect(settingsOpened, isTrue);
+    expect(find.textContaining('인스타그램 조회용 키가 들어 있지 않습니다'), findsOneWidget);
+    expect(find.text('설정 열기'), findsNothing);
   });
 
   testWidgets('전체 받기를 누르면 키보드를 내리고 다운로드 목록 탭으로 넘어간다', (tester) async {
@@ -165,8 +158,9 @@ void main() {
       );
     });
 
+    // 테스트는 키를 심지 않고 돌므로 클라이언트에 키를 직접 준다.
     final hikerClient = HikerClient(
-      readApiKey: () => settings.apiKey,
+      readApiKey: () => 'test-key',
       httpClient: hikerHttpClient,
     );
     final repository = IgRepository(hikerClient);
@@ -184,7 +178,6 @@ void main() {
         ],
         child: MaterialApp(
           home: HomeScreen(
-            onOpenSettings: () {},
             onOpenProfile: (_) {},
             onOpenDownloads: () => downloadsOpened++,
           ),
@@ -197,7 +190,7 @@ void main() {
       find.byType(TextField),
       'https://www.instagram.com/stories/nasa/',
     );
-    await tester.tap(find.text('가져오기'));
+    await tester.tap(find.byTooltip('가져오기'));
     await tester.pumpAndSettle();
 
     expect(find.text('전체 받기'), findsOneWidget);

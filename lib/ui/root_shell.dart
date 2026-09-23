@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../services/download_service.dart';
+import '../services/share_intake.dart';
 import 'downloads_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
@@ -19,12 +22,31 @@ class _RootShellState extends State<RootShell> {
   static const int _homeIndex = 0;
   static const int _profileIndex = 1;
   static const int _downloadsIndex = 2;
-  static const int _settingsIndex = 3;
 
   int _index = _homeIndex;
 
   /// 홈에서 프로필 링크를 만났을 때 프로필 화면을 직접 열기 위해 필요하다.
   final _profileKey = GlobalKey<ProfileScreenState>();
+
+  /// 공유 시트로 들어온 링크를 홈 화면에 넘기기 위해 필요하다.
+  final _homeKey = GlobalKey<HomeScreenState>();
+
+  final _shareIntake = ShareIntake();
+  StreamSubscription<String>? _shareSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _shareSubscription = _shareIntake.links.listen(_openSharedLink);
+    _shareIntake.start();
+  }
+
+  @override
+  void dispose() {
+    _shareSubscription?.cancel();
+    _shareIntake.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,15 +82,11 @@ class _RootShellState extends State<RootShell> {
       index: _index,
       children: [
         HomeScreen(
-          onOpenSettings: () => setState(() => _index = _settingsIndex),
+          key: _homeKey,
           onOpenProfile: _openProfile,
           onOpenDownloads: _openDownloads,
         ),
-        ProfileScreen(
-          key: _profileKey,
-          onOpenSettings: () => setState(() => _index = _settingsIndex),
-          onOpenDownloads: _openDownloads,
-        ),
+        ProfileScreen(key: _profileKey, onOpenDownloads: _openDownloads),
         const DownloadsScreen(),
         const SettingsScreen(),
       ],
@@ -119,6 +137,14 @@ class _RootShellState extends State<RootShell> {
         ],
       ),
     );
+  }
+
+  void _openSharedLink(String link) {
+    setState(() => _index = _homeIndex);
+    // 앱이 공유로 막 켜졌다면 홈 화면 state 가 첫 프레임 뒤에 준비된다.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _homeKey.currentState?.handleSharedLink(link);
+    });
   }
 
   void _openDownloads() {
