@@ -1,3 +1,4 @@
+import '../l10n/strings.dart';
 import '../models/ig_post.dart';
 import '../models/ig_user.dart';
 import 'hiker_client.dart';
@@ -57,7 +58,8 @@ class IgRepository {
   Future<ResolveResult> _resolveThreadsPost(IgLink link) async {
     final post = await _threadsClient.fetchPost(link);
     return ResolveResult(
-      title: '@${post.authorName} · Threads · ${post.kind.label}',
+      title:
+          '@${post.authorName} · Threads · ${post.kind.localizedLabel(S.current.isKo)}',
       posts: [post],
       user: post.user,
     );
@@ -87,7 +89,8 @@ class IgRepository {
       throw HikerException('이 게시물에서 내려받을 수 있는 파일을 찾지 못했습니다.');
     }
     return ResolveResult(
-      title: '@${post.authorName} · ${post.kind.label}',
+      title:
+          '@${post.authorName} · ${post.kind.localizedLabel(S.current.isKo)}',
       posts: [post],
       user: post.user,
     );
@@ -105,7 +108,8 @@ class IgRepository {
       throw HikerException('공유 링크에서 게시물을 찾지 못했습니다. 원본 게시물 주소로 다시 시도해 주세요.');
     }
     return ResolveResult(
-      title: '@${post.authorName} · ${post.kind.label}',
+      title:
+          '@${post.authorName} · ${post.kind.localizedLabel(S.current.isKo)}',
       posts: [post],
       user: post.user,
     );
@@ -132,7 +136,7 @@ class IgRepository {
       final story = _asMap(
         await _client.get('/v1/story/by/id', query: {'id': pk}),
       );
-      return _storiesResult([story], fallbackTitle: '스토리');
+      return _storiesResult([story], fallbackTitle: S.current.stories);
     }
     // 그 외 타입은 일반 게시물로 간주한다.
     final media = _asMap(
@@ -143,7 +147,8 @@ class IgRepository {
       throw HikerException('이 공유 링크에서 내려받을 수 있는 파일을 찾지 못했습니다.');
     }
     return ResolveResult(
-      title: '@${post.authorName} · ${post.kind.label}',
+      title:
+          '@${post.authorName} · ${post.kind.localizedLabel(S.current.isKo)}',
       posts: [post],
       user: post.user,
     );
@@ -156,7 +161,7 @@ class IgRepository {
     final raw = _asMap(
       await _client.get('/v1/story/by/url', query: {'url': url}),
     );
-    return _storiesResult([raw], fallbackTitle: '스토리');
+    return _storiesResult([raw], fallbackTitle: S.current.stories);
   }
 
   Future<ResolveResult> _resolveUserStories(String username) async {
@@ -168,7 +173,10 @@ class IgRepository {
     if (stories.isEmpty) {
       throw HikerException('@$username 에 현재 올라와 있는 스토리가 없습니다.');
     }
-    return _storiesResult(stories, fallbackTitle: '@$username 스토리');
+    return _storiesResult(
+      stories,
+      fallbackTitle: S.current.userStories(username),
+    );
   }
 
   Future<ResolveResult> _resolveHighlight(IgLink link) async {
@@ -200,10 +208,7 @@ class IgRepository {
     final items = map?['items'] ?? map?['media'] ?? raw;
     final list = items is List ? items : (map == null ? const [] : [map]);
     final title = (map?['title'] as String?)?.trim();
-    return _storiesResult(
-      list,
-      fallbackTitle: title?.isNotEmpty == true ? '하이라이트 · $title' : '하이라이트',
-    );
+    return _storiesResult(list, fallbackTitle: S.current.highlight(title));
   }
 
   ResolveResult _storiesResult(
@@ -219,7 +224,7 @@ class IgRepository {
         ? fallbackTitle
         : '@${user.username} · $fallbackTitle';
     return ResolveResult(
-      title: '$owner · ${posts.length}개',
+      title: '$owner · ${S.current.itemCountShort(posts.length)}',
       posts: posts,
       user: user,
     );

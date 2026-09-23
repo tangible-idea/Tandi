@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:townloader/data/hiker_client.dart';
@@ -138,6 +139,9 @@ Future<void> _loadFamily(String family, List<String> paths) async {
 }
 
 Future<void> _setSurface(WidgetTester tester, Size size) async {
+  // 데이터 계층 문구(S.current)도 한국어로 나오도록 기기 언어를 맞춘다.
+  tester.platformDispatcher.localeTestValue = const Locale('ko');
+  addTearDown(tester.platformDispatcher.clearLocaleTestValue);
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
@@ -165,6 +169,13 @@ Widget _app(Widget child, {bool dark = false}) {
     child: MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: base,
+      locale: const Locale('ko'),
+      supportedLocales: const [Locale('ko'), Locale('en')],
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: child,
     ),
   );

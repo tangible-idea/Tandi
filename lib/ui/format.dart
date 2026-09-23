@@ -25,14 +25,29 @@ class Fmt {
     return '$minutes:${rest.toString().padLeft(2, '0')}';
   }
 
-  /// `1.2만`, `340만` 같은 축약 수치.
-  static String count(int? value) {
+  /// `1.2만`, `340만` 같은 축약 수치. 영어는 `48.2K`, `1.2M` 처럼 줄인다.
+  static String count(int? value, {bool isKo = true}) {
     if (value == null || value < 0) return '';
     if (value < 10000) return _withCommas(value);
+    if (!isKo) return _compactEn(value);
     final man = value / 10000;
     if (man < 10) return '${man.toStringAsFixed(1)}만';
     if (man < 10000) return '${man.round()}만';
     return '${(man / 10000).toStringAsFixed(1)}억';
+  }
+
+  static String _compactEn(int value) {
+    const steps = [(1000000000, 'B'), (1000000, 'M'), (1000, 'K')];
+    for (final (size, suffix) in steps) {
+      if (value >= size) {
+        final scaled = value / size;
+        final text = scaled < 100
+            ? scaled.toStringAsFixed(1).replaceFirst(RegExp(r'\.0$'), '')
+            : scaled.round().toString();
+        return '$text$suffix';
+      }
+    }
+    return _withCommas(value);
   }
 
   static String _withCommas(int value) {

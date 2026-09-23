@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
+import '../l10n/strings.dart';
 import '../models/ig_asset.dart';
 import '../models/ig_post.dart';
 import 'file_saver.dart';
@@ -107,7 +108,8 @@ class DownloadService extends ChangeNotifier {
       _items.add(
         DownloadItem(
           id: '${post.pk}-${item.id}-${DateTime.now().microsecondsSinceEpoch}',
-          title: '@${post.authorName} · ${post.kind.label}',
+          title:
+              '@${post.authorName} · ${post.kind.localizedLabel(S.current.isKo)}',
           filename: buildFilename(
             post,
             asset,
@@ -139,7 +141,8 @@ class DownloadService extends ChangeNotifier {
     _items.add(
       DownloadItem(
         id: '${post.pk}-$index-${DateTime.now().microsecondsSinceEpoch}',
-        title: '@${post.authorName} · ${post.kind.label}',
+        title:
+            '@${post.authorName} · ${post.kind.localizedLabel(S.current.isKo)}',
         filename: buildFilename(
           post,
           asset,

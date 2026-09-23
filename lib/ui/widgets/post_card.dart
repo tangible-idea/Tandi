@@ -102,7 +102,8 @@ class PostCard extends StatelessWidget {
                 Text(
                   [
                     post.kind.localizedLabel(S.of(context).isKo),
-                    if (post.items.length > 1) S.of(context).itemsCount(post.items.length),
+                    if (post.items.length > 1)
+                      S.of(context).itemsCount(post.items.length),
                     Fmt.date(post.takenAt),
                   ].where((text) => text.isNotEmpty).join(' · '),
                   style: theme.textTheme.bodySmall?.copyWith(
@@ -117,9 +118,7 @@ class PostCard extends StatelessWidget {
               tooltip: S.of(context).copyLink,
               icon: const Icon(Icons.link, size: 20),
               onPressed: () async {
-                await Clipboard.setData(
-                  ClipboardData(text: post.permalink!),
-                );
+                await Clipboard.setData(ClipboardData(text: post.permalink!));
                 if (context.mounted) {
                   _toast(context, S.of(context).linkCopied);
                 }
@@ -208,11 +207,20 @@ class PostCard extends StatelessWidget {
     final theme = Theme.of(context);
     final entries = <(IconData, String)>[
       if ((post.likeCount ?? 0) > 0)
-        (Icons.favorite_border, Fmt.count(post.likeCount)),
+        (
+          Icons.favorite_border,
+          Fmt.count(post.likeCount, isKo: S.of(context).isKo),
+        ),
       if ((post.commentCount ?? 0) > 0)
-        (Icons.mode_comment_outlined, Fmt.count(post.commentCount)),
+        (
+          Icons.mode_comment_outlined,
+          Fmt.count(post.commentCount, isKo: S.of(context).isKo),
+        ),
       if ((post.playCount ?? post.viewCount ?? 0) > 0)
-        (Icons.play_arrow_outlined, Fmt.count(post.playCount ?? post.viewCount)),
+        (
+          Icons.play_arrow_outlined,
+          Fmt.count(post.playCount ?? post.viewCount, isKo: S.of(context).isKo),
+        ),
     ];
     if (entries.isEmpty) return const SizedBox.shrink();
 
@@ -239,9 +247,7 @@ class PostCard extends StatelessWidget {
 
   Widget _actions(BuildContext context) {
     final s = S.of(context);
-    final hasVariantChoice = post.items.any(
-      (item) => item.variants.length > 1,
-    );
+    final hasVariantChoice = post.items.any((item) => item.variants.length > 1);
 
     return Row(
       children: [

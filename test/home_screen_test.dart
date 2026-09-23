@@ -58,6 +58,10 @@ void main() {
       ''', 200);
     });
 
+    // 데이터 계층 제목(S.current)은 기기 언어를 따르므로 앱 언어와 맞춘다.
+    tester.platformDispatcher.localeTestValue = const Locale('ko');
+    addTearDown(tester.platformDispatcher.clearLocaleTestValue);
+
     final hikerClient = HikerClient(readApiKey: () => settings.apiKey);
     final threadsClient = ThreadsClient(httpClient: threadsHttpClient);
     final repository = IgRepository(hikerClient, threadsClient: threadsClient);

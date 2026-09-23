@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:gal/gal.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../l10n/strings.dart';
+
 /// 파일이 최종적으로 어디에 저장되었는지.
 class SavedLocation {
   const SavedLocation({required this.description, this.filePath});
@@ -35,8 +37,7 @@ class MediaFileSaver {
 
   /// 데스크톱(파일 시스템이 사용자에게 그대로 보이는 플랫폼)인지.
   static bool get isDesktop =>
-      !kIsWeb &&
-      (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
+      !kIsWeb && (Platform.isMacOS || Platform.isWindows || Platform.isLinux);
 
   Future<SavedLocation> save({
     required File tempFile,
@@ -56,7 +57,8 @@ class MediaFileSaver {
   ) async {
     // 샌드박스에서 Downloads 접근이 막히면 앱 문서 폴더로 물러선다.
     final base =
-        await getDownloadsDirectory() ?? await getApplicationDocumentsDirectory();
+        await getDownloadsDirectory() ??
+        await getApplicationDocumentsDirectory();
     final targetDir = Directory('${base.path}/$albumName/$subfolder');
     await targetDir.create(recursive: true);
 
@@ -85,7 +87,10 @@ class MediaFileSaver {
       await dir.create(recursive: true);
       final target = _uniquePath(dir.path, filename);
       await tempFile.rename(target.path);
-      return SavedLocation(description: '앱 문서 폴더', filePath: target.path);
+      return SavedLocation(
+        description: S.current.appDocuments,
+        filePath: target.path,
+      );
     }
 
     if (!await Gal.hasAccess(toAlbum: true)) {
@@ -110,7 +115,7 @@ class MediaFileSaver {
       }
     }
 
-    return const SavedLocation(description: '사진 앱 · $albumName 앨범');
+    return SavedLocation(description: S.current.savedToAlbum(albumName));
   }
 
   /// 같은 이름이 있으면 `이름-2.mp4` 처럼 번호를 붙여 덮어쓰기를 막는다.

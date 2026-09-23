@@ -10,6 +10,11 @@ class S {
     return S(code != 'en');
   }
 
+  /// 위젯 트리 밖(데이터·서비스 계층)에서 쓰는 문구. 기기 언어를 보고 [of] 와 같은
+  /// 규칙(영어가 아니면 한국어)으로 고르므로 화면과 언어가 어긋나지 않는다.
+  static S get current =>
+      S(WidgetsBinding.instance.platformDispatcher.locale.languageCode != 'en');
+
   // ── Navigation ──
   String get navDownload => isKo ? '다운로드' : 'Download';
   String get navProfile => isKo ? '프로필' : 'Profile';
@@ -44,6 +49,13 @@ class S {
   String get downloadBtn => isKo ? '다운로드' : 'Download';
   String get savedBtn => isKo ? '저장됨' : 'Saved';
   String get selectQuality => isKo ? '해상도 선택' : 'Select quality';
+  String get stories => isKo ? '스토리' : 'Stories';
+  String userStories(String username) =>
+      isKo ? '@$username 스토리' : "@$username's stories";
+  String highlight(String? title) => title == null || title.isEmpty
+      ? (isKo ? '하이라이트' : 'Highlight')
+      : (isKo ? '하이라이트 · $title' : 'Highlight · $title');
+  String itemCountShort(int count) => isKo ? '$count개' : '$count';
 
   // ── Profile ──
   String get profileTitle => isKo ? '프로필' : 'Profile';
@@ -59,6 +71,12 @@ class S {
   String get noPosts => isKo ? '게시물이 없습니다' : 'No posts';
   String get noReels => isKo ? '릴스가 없습니다' : 'No reels';
   String get noStories => isKo ? '현재 스토리가 없습니다' : 'No active stories';
+  String postsStat(String count) => isKo ? '게시물 $count' : '$count posts';
+  String followersStat(String count) =>
+      isKo ? '팔로워 $count' : '$count followers';
+  String get privateBadge => isKo ? '비공개' : 'Private';
+  String downloadVisible(int count) =>
+      isKo ? '보이는 $count개 전부 받기' : 'Download all $count';
 
   // ── Downloads ──
   String get downloadsTitle => isKo ? '다운로드 목록' : 'Downloads';
@@ -71,6 +89,9 @@ class S {
   String get retry => isKo ? '재시도' : 'Retry';
   String get cancel => isKo ? '취소' : 'Cancel';
   String get photosApp => isKo ? '사진 앱' : 'Photos';
+  String savedToAlbum(String album) =>
+      isKo ? '사진 앱 · $album 앨범' : 'Photos · $album album';
+  String get appDocuments => isKo ? '앱 문서 폴더' : 'App documents';
   String get openFolder => isKo ? '폴더 열기' : 'Open folder';
 
   // ── Settings ──
@@ -81,7 +102,8 @@ class S {
   String get qualitySmall => isKo ? '저용량' : 'Low size';
   String get qualitySmallSub => isKo ? '최저 해상도' : 'Smallest file size';
   String get saveToPhotos => isKo ? '사진 앱에 저장' : 'Save to Photos';
-  String get saveToPhotosSub => isKo ? '끄면 앱 폴더에 저장' : 'Off: save to app folder';
+  String get saveToPhotosSub =>
+      isKo ? '끄면 앱 폴더에 저장' : 'Off: save to app folder';
   String get storageSection => isKo ? '저장 위치' : 'Storage';
   String get infoSection => isKo ? '안내' : 'Info';
   String get infoDesc =>

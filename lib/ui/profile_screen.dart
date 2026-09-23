@@ -186,6 +186,7 @@ class ProfileScreenState extends State<ProfileScreen> {
     ProfileController controller,
   ) {
     final theme = Theme.of(context);
+    final s = S.of(context);
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -239,9 +240,11 @@ class ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 2),
                     Text(
                       [
-                        '게시물 ${Fmt.count(user.mediaCount)}',
-                        '팔로워 ${Fmt.count(user.followerCount)}',
-                        if (user.isPrivate) '비공개',
+                        s.postsStat(Fmt.count(user.mediaCount, isKo: s.isKo)),
+                        s.followersStat(
+                          Fmt.count(user.followerCount, isKo: s.isKo),
+                        ),
+                        if (user.isPrivate) s.privateBadge,
                       ].join(' · '),
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
@@ -298,7 +301,9 @@ class ProfileScreenState extends State<ProfileScreen> {
                   if (count > 0) widget.onOpenDownloads();
                 },
                 icon: const Icon(Icons.download),
-                label: Text('보이는 ${controller.posts.length}개 전부 받기'),
+                label: Text(
+                  S.of(context).downloadVisible(controller.posts.length),
+                ),
               ),
             ),
           ],
@@ -368,7 +373,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                 ),
                 child: Text(
                   post.items.length > 1
-                      ? '${post.items.length}개'
+                      ? S.of(context).itemCountShort(post.items.length)
                       : Fmt.duration(post.items.first.durationSeconds),
                   style: const TextStyle(color: Colors.white, fontSize: 11),
                 ),
