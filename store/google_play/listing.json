@@ -1,0 +1,48 @@
+{
+  "app": {
+    "name": "Townloader",
+    "package": "net.tangibleidea.townloader",
+    "play_app_id": "4975870942852943050",
+    "developer_id": "7866548385374519877"
+  },
+  "contact": {
+    "email": "fantasysa@gmail.com",
+    "website": "https://github.com/tangible-idea/Townloader",
+    "privacy_policy_url": "https://github.com/tangible-idea/Townloader/blob/main/PRIVACY.md"
+  },
+  "category": {
+    "type": "App",
+    "category": "Tools"
+  },
+  "listings": {
+    "ko-KR": {
+      "default": true,
+      "title": "Townloader - 사진·동영상 원본 저장",
+      "short_description": "공유 버튼 한 번으로 공개 게시물의 사진과 동영상을 원본 화질 그대로 저장하세요.",
+      "full_description": "링크 하나로, 원본 화질 그대로.\n\nTownloader는 공개 게시물의 사진과 동영상을 가장 높은 화질로 저장해 주는 앱입니다. 복사한 링크를 붙여넣거나, 보던 앱의 공유 버튼에서 Townloader를 고르기만 하면 됩니다.\n\n■ 공유 버튼 한 번이면 바로 다운로드\n보고 있던 앱에서 공유 → Townloader를 누르면 앱이 열리면서 곧바로 내려받기를 시작합니다. 링크를 복사하고 붙여넣는 과정이 필요 없어요.\n\n■ 원본 화질 그대로\n사진은 가장 큰 해상도로, 동영상은 가장 높은 화질로 저장합니다. 빠르게 확인만 하고 싶다면 설정에서 '가장 작은 용량'을 고를 수도 있어요.\n\n■ 여러 장짜리 게시물도 한 번에\n사진과 영상이 여러 장 들어 있는 게시물은 전부 한 번에 받습니다.\n\n■ 계정을 통째로 둘러보기\n공개 계정의 게시물·릴스·스토리를 목록으로 보고, 원하는 것만 골라 저장하세요.\n\n■ 갤러리에 깔끔하게 정리\n저장한 파일은 갤러리의 'Townloader' 앨범에 모입니다. 파일 이름에 계정명이 붙어 나중에 찾기도 쉽습니다.\n\n■ 다운로드 목록\n여러 파일의 진행 상황을 한눈에 보고, 필요하면 취소하거나 다시 시도할 수 있습니다.\n\n지원하는 링크\n• 게시물, 릴스, 여러 장짜리 게시물\n• 스토리, 하이라이트\n• Threads 공개 게시물\n\n알아두세요\n• 공개 계정의 콘텐츠만 저장할 수 있습니다. 비공개 계정은 지원하지 않습니다.\n• 저장한 콘텐츠의 저작권은 원저작자에게 있습니다. 개인 보관 용도로만 사용하고, 재배포하거나 상업적으로 이용하기 전에는 반드시 권리자의 허락을 받으세요.\n• Townloader는 Instagram, Threads, Meta와 제휴하거나 승인받은 앱이 아닙니다.",
+      "graphics": {
+        "icon": "store/google_play/icon_512.png",
+        "feature_graphic": "store/google_play/ko-KR/feature_graphic.png",
+        "phone_screenshots": [
+          "store/google_play/ko-KR/01_link.png",
+          "store/google_play/ko-KR/02_share.png",
+          "store/google_play/ko-KR/03_profile.png"
+        ]
+      }
+    },
+    "en-US": {
+      "title": "Townloader - Photo Video Saver",
+      "short_description": "Save photos and videos from public posts in original quality with one tap.",
+      "full_description": "One link. Original quality.\n\nTownloader saves photos and videos from public posts in the highest quality available. Paste a link you copied, or pick Townloader from the share button in the app you're browsing.\n\n■ Download straight from the share button\nTap Share → Townloader in the app you're using and the download starts right away. No copying and pasting links.\n\n■ Original quality\nPhotos are saved at the largest resolution and videos at the highest quality. If you just want a quick look, choose \"Smallest size\" in Settings.\n\n■ Multi-photo posts in one go\nPosts with several photos and videos are downloaded all at once.\n\n■ Browse a whole account\nSee a public account's posts, reels and stories as a list, and save only the ones you want.\n\n■ Neatly organized in your gallery\nSaved files go to the \"Townloader\" album in your gallery, with the account name in the file name so they're easy to find later.\n\n■ Download list\nTrack the progress of multiple files at a glance, and cancel or retry when needed.\n\nSupported links\n• Posts, reels and multi-photo posts\n• Stories and highlights\n• Public Threads posts\n\nPlease note\n• Only content from public accounts can be saved. Private accounts are not supported.\n• Copyright of saved content belongs to its original creator. Use it for personal archiving only, and get the rights holder's permission before redistributing it or using it commercially.\n• Townloader is not affiliated with or endorsed by Instagram, Threads or Meta.",
+      "graphics": {
+        "icon": "store/google_play/icon_512.png",
+        "feature_graphic": "store/google_play/en-US/feature_graphic.png",
+        "phone_screenshots": [
+          "store/google_play/en-US/01_link.png",
+          "store/google_play/en-US/02_share.png",
+          "store/google_play/en-US/03_profile.png"
+        ]
+      }
+    }
+  }
+}

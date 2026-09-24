@@ -8,7 +8,7 @@
 #   make ios / make macos    플랫폼 바로 지정
 #   make devices             기기 목록과 ID 확인
 #   make test / make analyze
-#   make ipa / make apk      릴리스 빌드
+#   make ipa / make apk / make aab   릴리스 빌드
 
 ENV_FILE ?= .env.json
 DEFINES  := $(if $(wildcard $(ENV_FILE)),--dart-define-from-file=$(ENV_FILE),)
@@ -16,7 +16,7 @@ DEFINES  := $(if $(wildcard $(ENV_FILE)),--dart-define-from-file=$(ENV_FILE),)
 DEVICE     ?=
 DEVICE_ARG := $(if $(DEVICE),-d $(DEVICE),)
 
-.PHONY: run ios macos devices test analyze ipa apk ipa-internal apk-internal env-check
+.PHONY: run ios macos devices test analyze ipa apk aab ipa-internal apk-internal env-check
 
 run:
 	flutter run $(DEFINES) $(DEVICE_ARG)
@@ -44,6 +44,10 @@ ipa:
 
 apk:
 	flutter build apk
+
+# Play 업로드용. android/key.properties 의 업로드 키로 서명한다.
+aab:
+	flutter build appbundle $(DEFINES)
 
 # 키를 심은 빌드. 내부 테스터에게만 돌릴 때 쓴다.
 # 받은 사람이 IPA 를 뜯으면 키를 꺼낼 수 있다는 점을 알고 쓸 것.

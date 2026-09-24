@@ -1,0 +1,184 @@
+{
+  "_about": "Play Console 출시 준비를 브라우저 자동화(Claude in Chrome)로 진행한 기록. 다른 앱에서 재사용할 때는 app/answers 값만 바꾸고 steps 순서대로 진행한다. 실행일 2026-09-25.",
+  "app": {
+    "name": "Townloader",
+    "package": "net.tangibleidea.townloader",
+    "developer_id": "7866548385374519877",
+    "play_app_id": "4975870942852943050",
+    "console_base": "https://play.google.com/console/u/0/developers/{developer_id}/app/{play_app_id}"
+  },
+  "inputs": {
+    "listing_json": "store/google_play/listing.json",
+    "asset_script": "store/google_play/make_assets.py",
+    "listing_script": "store/google_play/make_listing.py",
+    "privacy_policy_url": "https://github.com/tangible-idea/Townloader/blob/main/PRIVACY.md",
+    "contact_email": "fantasysa@gmail.com",
+    "website": "https://github.com/tangible-idea/Townloader"
+  },
+  "prerequisites": [
+    {"id": "assets", "do": "python3 store/google_play/make_assets.py", "why": "아이콘 512, 피처 그래픽 1024x500, 9:16 스크린샷 1080x1920 생성"},
+    {"id": "listing", "do": "python3 store/google_play/make_listing.py", "why": "로케일별 제목/짧은 설명/전체 설명 JSON 생성 + 글자 수 검사"},
+    {"id": "privacy_url_check", "do": "curl -sL -o /dev/null -w '%{http_code}' <privacy_policy_url>", "expect": "200", "why": "비공개 저장소면 심사 거절"},
+    {"id": "ad_id_check", "do": "merged release manifest 에 com.google.android.gms.permission.AD_ID 가 없는지 확인", "why": "Advertising ID 선언 답과 일치해야 함"},
+    {"id": "user_decisions", "ask": ["공개 연락처 이메일", "기본 스토어 언어", "IARC 약관 동의 허락", "데이터 보안 답변 방향"]}
+  ],
+  "steps": [
+    {
+      "order": 1, "section": "App content", "name": "Privacy policy",
+      "path": "/app-content/privacy-policy",
+      "actions": [
+        {"type": "fill", "target": "textbox[aria-label='Privacy policy URL']", "value": "{privacy_policy_url}", "method": "click+type"},
+        {"type": "click", "target": "bottom bar 'Save'"}
+      ],
+      "verify": "하단에 'Change saved.' 표시",
+      "status": "done"
+    },
+    {
+      "order": 2, "section": "App content", "name": "Ads",
+      "path": "/app-content/ads-declaration",
+      "answers": {"Does your app contain ads?": "No, my app does not contain ads"},
+      "status": "done"
+    },
+    {
+      "order": 3, "section": "App content", "name": "Sign-in details (구 App access)",
+      "path": "/app-content/testing-credentials",
+      "answers": {"Is any part of your app restricted?": "No"},
+      "status": "done"
+    },
+    {
+      "order": 4, "section": "App content", "name": "Target audience and content",
+      "path": "/app-content/target-audience-content",
+      "answers": {"Target age group": ["18 and over"]},
+      "note": "Next → Summary → Save. 18세 이상만 고르면 가족 정책 추가 질문이 없다.",
+      "status": "done"
+    },
+    {
+      "order": 5, "section": "App content", "name": "Content ratings (IARC)",
+      "path": "/app-content/content-rating-overview → Start questionnaire → /app-content/content-rating-iarc-questionnaire",
+      "requires_user_permission": "IARC Terms of Use 동의 체크",
+      "answers": {
+        "Email address": "{contact_email}",
+        "Category": "All other app types",
+        "Downloaded app: ratings-relevant content in package": "No",
+        "User content sharing: users interact/exchange content": "No",
+        "Online content: features content not in initial download": "Yes (Instagram/Threads 공개 게시물을 불러와 보여줌)",
+        "Violence": "No", "Sexuality": "No", "Language": "No", "Controlled Substance": "No",
+        "Promotion or sale of age-restricted products": "No",
+        "Misc: shares precise location with other users": "No",
+        "Misc: purchase digital goods": "No",
+        "Misc: cash rewards / NFTs": "No",
+        "Misc: web browser or search engine": "No",
+        "Misc: primarily news or educational": "No"
+      },
+      "flow": "Save → Next → Summary → Save",
+      "result": "전체 이용가 (ClassInd L, ESRB E, PEGI 3, USK 0, ACB/IARC 3+)",
+      "status": "done"
+    },
+    {
+      "order": 6, "section": "App content", "name": "Data safety",
+      "path": "/app-content/data-privacy-security",
+      "answers": {"Does your app collect or share any of the required user data types?": "No"},
+      "rationale": "계정 없음, 분석/광고 SDK 없음. HikerAPI/Threads 로 보내는 링크는 사용자가 요청한 콘텐츠 조회용이며 개발자에게 오지 않음 (PRIVACY.md 3항).",
+      "flow": "Overview Next → No → Next → (Data types/Usage 자동 스킵) → Preview → Save",
+      "status": "done"
+    },
+    {
+      "order": 7, "section": "App content", "name": "Advertising ID",
+      "path": "overview 의 'Start Advertising ID declaration' 버튼 → /app-content/ad-id-declaration",
+      "answers": {"Does your app use an advertising ID?": "No"},
+      "status": "done"
+    },
+    {
+      "order": 8, "section": "App content", "name": "Government apps",
+      "path": "/app-content/government-apps",
+      "answers": {"Is your app developed by or on behalf of a government?": "No"},
+      "status": "done"
+    },
+    {
+      "order": 9, "section": "App content", "name": "Financial features",
+      "path": "/app-content/finance",
+      "answers": {"checkbox": "My app doesn't provide any financial features"},
+      "flow": "체크 → Next → (Documentation 안내) → Save",
+      "status": "done"
+    },
+    {
+      "order": 10, "section": "App content", "name": "Health apps",
+      "path": "/app-content/health",
+      "answers": {"checkbox": "My app does not have any health features"},
+      "flow": "체크 → Next → Save",
+      "status": "done"
+    },
+    {
+      "order": 11, "section": "Store presence", "name": "Store settings: App category",
+      "path": "/store-settings → App category 'Edit' (dialog)",
+      "answers": {"App or game": "App", "Category": "Tools", "Tags": "(없음)"},
+      "status": "done"
+    },
+    {
+      "order": 12, "section": "Store presence", "name": "Store settings: Contact details",
+      "path": "/store-settings → Store Listing contact details 'Edit' (dialog)",
+      "answers": {"Email address": "{contact_email}", "Website": "{website}"},
+      "note": "Website 칸에 scheme 없이 쓰면 http:// 로 저장된다. https:// 를 포함해 전체 URL 입력.",
+      "status": "done"
+    },
+    {
+      "order": 13, "section": "Store presence", "name": "Default store listing: 언어 설정",
+      "path": "/main-store-listing",
+      "flow": [
+        "Manage translations ▾ → Select languages → 검색 'Korean' → Korean – ko-KR 체크 → Apply",
+        "Manage translations ▾ → Change default language ▸ → Korean – ko-KR"
+      ],
+      "note": "기본 언어는 이미 추가된 언어 중에서만 고를 수 있다. 먼저 언어를 추가해야 함.",
+      "status": "done"
+    },
+    {
+      "order": 14, "section": "Store presence", "name": "Default store listing: 로케일별 입력",
+      "path": "/main-store-listing (상단 언어 드롭다운으로 로케일 전환)",
+      "per_locale": {
+        "fields": {
+          "Name of the app": "listing.json listings.<loc>.title",
+          "Short description of the app": "listing.json listings.<loc>.short_description",
+          "Full description of the app": "listing.json listings.<loc>.full_description"
+        },
+        "graphics": {
+          "App icon": "icon_512.png (기본 언어에만. 다른 언어는 상속)",
+          "Feature graphic": "<loc>/feature_graphic.png",
+          "Phone screenshots": "<loc>/01_link.png, 02_share.png, 03_profile.png",
+          "7-inch tablet screenshots": "휴대폰과 같은 3장 (필수)",
+          "10-inch tablet screenshots": "휴대폰과 같은 3장 (필수, 각 변 1080px 이상)"
+        }
+      },
+      "order_of_locales": ["ko-KR (default)", "en-US"],
+      "flow": "필드 입력 → 그래픽 추가 → (오류 있으면 Save as draft) → 다른 로케일 전환 → 입력 → Save",
+      "status": "done"
+    },
+    {
+      "order": 15, "section": "Release", "name": "Production / testing release",
+      "status": "not_started",
+      "blocked_on": [
+        ".env.json 에 HIKER_API_KEY 를 넣고 make aab 로 다시 빌드 (현재 AAB 는 키 없음)",
+        "심사 제출(Send for review)은 되돌릴 수 없으므로 사용자 확인 필요"
+      ],
+      "observed": "Production 트랙에 'Draft release: Townloader' 가 이미 있음 (177개 국가/지역 선택됨)",
+      "next": [
+        "Test and release → Production (또는 Internal testing) → Create new release / Edit draft",
+        "AAB 업로드: build/app/outputs/bundle/release/app-release.aab",
+        "Release name / Release notes (ko-KR, en-US) 입력",
+        "Next → Save → Publishing overview → Send changes for review"
+      ]
+    }
+  ],
+  "automation_pitfalls": [
+    "Play Console 은 Angular(material) 폼이다. JS 로 value 를 바꾸고 input 이벤트를 보내도 모델이 갱신되지 않아 'Add a name' 오류가 남는다. 텍스트는 computer 클릭 → cmd+a → type 으로 입력해야 확실하다.",
+    "라디오/체크박스는 JS 로 material-radio 요소를 .click() 하면 동작했지만, material-checkbox 는 .click() 이 먹지 않았다. getBoundingClientRect 로 위치를 구해 실제 마우스 클릭.",
+    "창 크기가 바뀌면 innerWidth(1920)와 스크린샷 좌표계(1568)가 달라진다. 좌표 = CSS px × (1568/1920). 가능하면 find/ref 로 클릭.",
+    "페이지 전환 직후 스크린샷이 4분할로 깨져 보이는 렌더링 문제가 있었다. 이때는 get_page_text / javascript_tool 로 상태를 읽는다.",
+    "App content 각 페이지 URL 을 추측하면 app-list 로 튕긴다(예: /app-content/ad-id). overview 에서 aria-label 'Start <이름> declaration' 버튼을 눌러 이동하는 게 안전.",
+    "드롭다운 옵션(role=option)은 ref 클릭이 안 먹을 때 mousedown/mouseup/click 이벤트를 직접 dispatch 하면 선택됐다.",
+    "Store listing 그래픽: 'Add assets' 를 눌러 대상 칸을 먼저 활성화 → 오른쪽 에셋 패널의 input[type=file] 에 file_upload → 업로드된 항목이 자동 선택됨 → 패널 하단 'Add'. 여러 장은 한 장씩 올리고 매번 몇 초 기다린다(연속 업로드 시 앞 파일이 누락됨).",
+    "라이브러리에서 기존 에셋을 고를 때는 행에 hover 한 뒤 썸네일 좌상단 원형 체크를 클릭. 선택 순서가 곧 표시 순서.",
+    "Play 스크린샷은 16:9 또는 9:16 만 허용. App Store 6.7\" (1284x2778) 그대로는 거부된다.",
+    "7인치/10인치 태블릿 스크린샷이 필수로 표시된다. 휴대폰용 9:16 이미지를 재사용해도 저장된다.",
+    "저장은 'Change saved. Send for review in Publishing overview.' 로 끝나며 심사 제출은 별도 단계다."
+  ]
+}
